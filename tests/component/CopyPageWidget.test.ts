@@ -1,15 +1,34 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { CopyPageWidget } from '../../src/client/CopyPageWidget'
+import * as VueRouter from 'vue-router'
 
 // Store original querySelector
 const originalQuerySelector = document.querySelector.bind(document)
+
+// Helper to update mock route
+const mockRoute = (path: string) => {
+  vi.mocked(VueRouter.useRoute).mockReturnValue({
+    path,
+    params: {},
+    query: {},
+    hash: '',
+    fullPath: path,
+    matched: [],
+    name: undefined,
+    redirectedFrom: undefined,
+    meta: {},
+  } as any)
+}
 
 describe('CopyPageWidget Component', () => {
   let mockClipboard: { writeText: ReturnType<typeof vi.fn> }
   let mockH1: HTMLHeadingElement
 
   beforeEach(() => {
+    // Mock route path (default)
+    mockRoute('/posts/test.html')
+
     // Setup window globals
     window.__COPY_PAGE_OPTIONS__ = {
       includes: ['/posts/'],
@@ -83,6 +102,8 @@ describe('CopyPageWidget Component', () => {
 
   describe('shouldShow computed property', () => {
     beforeEach(() => {
+      // Mock route path
+      mockRoute('/posts/test.html')
       // Mock window.location
       delete (window as any).location
       window.location = { pathname: '/posts/test.html' } as any
@@ -105,6 +126,7 @@ describe('CopyPageWidget Component', () => {
     })
 
     it('should not create widget when path does not match includes pattern', async () => {
+      mockRoute('/about.html')
       delete (window as any).location
       window.location = { pathname: '/about.html' } as any
 
@@ -130,6 +152,7 @@ describe('CopyPageWidget Component', () => {
         position: 'top-right',
       }
 
+      mockRoute('/posts/draft/secret.html')
       delete (window as any).location
       window.location = { pathname: '/posts/draft/secret.html' } as any
 
@@ -149,6 +172,7 @@ describe('CopyPageWidget Component', () => {
     })
 
     it('should not create widget for paths ending with /', async () => {
+      mockRoute('/posts/')
       delete (window as any).location
       window.location = { pathname: '/posts/' } as any
 
@@ -170,6 +194,8 @@ describe('CopyPageWidget Component', () => {
 
   describe('copy functionality', () => {
     beforeEach(() => {
+      // Mock route path
+      mockRoute('/posts/test.html')
       // Mock window.location
       delete (window as any).location
       window.location = { pathname: '/posts/test.html' } as any
@@ -252,6 +278,8 @@ describe('CopyPageWidget Component', () => {
 
   describe('view as markdown functionality', () => {
     beforeEach(() => {
+      // Mock route path
+      mockRoute('/posts/test.html')
       // Mock window.location
       delete (window as any).location
       window.location = { pathname: '/posts/test.html' } as any
@@ -315,6 +343,8 @@ describe('CopyPageWidget Component', () => {
 
   describe('menu toggle', () => {
     beforeEach(() => {
+      // Mock route path
+      mockRoute('/posts/test.html')
       // Mock window.location
       delete (window as any).location
       window.location = { pathname: '/posts/test.html' } as any
@@ -400,6 +430,8 @@ describe('CopyPageWidget Component', () => {
       delete window.__COPY_PAGE_OPTIONS__
       delete window.__MARKDOWN_SOURCES__
 
+      // Mock route path
+      mockRoute('/posts/test.html')
       // Mock window.location
       delete (window as any).location
       window.location = { pathname: '/posts/test.html' } as any

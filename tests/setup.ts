@@ -1,5 +1,20 @@
 import { vi } from 'vitest'
 
+// Mock vue-router's useRoute
+vi.mock('vue-router', () => ({
+  useRoute: vi.fn(() => ({
+    path: '/posts/test.html',
+    params: {},
+    query: {},
+    hash: '',
+    fullPath: '/posts/test.html',
+    matched: [],
+    name: undefined,
+    redirectedFrom: undefined,
+    meta: {},
+  })),
+}))
+
 // Mock clipboard API
 Object.assign(navigator, {
   clipboard: {
