@@ -1,6 +1,6 @@
 {
   "name": "vuepress-plugin-copy-page",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "A VuePress plugin to copy page content as Markdown for LLMs",
   "keywords": [
     "vuepress",
