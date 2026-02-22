@@ -1,4 +1,5 @@
-import { defineComponent, ref, computed, onMounted, onUnmounted } from 'vue'
+import { defineComponent, ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
+import { useRoute } from 'vue-router'
 
 declare global {
   interface Window {
@@ -30,6 +31,7 @@ export const CopyPageWidget = defineComponent({
   name: 'CopyPageWidget',
 
   setup() {
+    const route = useRoute()
     const mounted = ref(false)
     const pagePath = ref('')
     let widgetEl: HTMLElement | null = null
@@ -213,11 +215,41 @@ export const CopyPageWidget = defineComponent({
       return container
     }
 
-    const getPagePath = () => window.location.pathname
+    const updatePagePath = () => {
+      pagePath.value = window.location.pathname
+    }
+
+    // Watch for route changes (handles Vue Router navigation)
+    watch(
+      () => route.path,
+      async (newPath) => {
+        pagePath.value = newPath
+        // Remove existing widget first
+        widgetEl?.remove()
+        widgetEl = null
+
+        if (shouldShow.value) {
+          // Wait for DOM to update after navigation
+          await nextTick()
+          setTimeout(() => createWidget(), 150)
+        }
+      }
+    )
+
+    // Also watch shouldShow to react to path changes
+    watch(shouldShow, async (show) => {
+      if (show && mounted.value) {
+        await nextTick()
+        setTimeout(() => createWidget(), 100)
+      } else {
+        widgetEl?.remove()
+        widgetEl = null
+      }
+    })
 
     onMounted(() => {
       mounted.value = true
-      pagePath.value = getPagePath()
+      updatePagePath()
 
       if (shouldShow.value) {
         // Wait for DOM to be ready
@@ -225,14 +257,6 @@ export const CopyPageWidget = defineComponent({
           createWidget()
         }, 100)
       }
-
-      // Handle route changes
-      window.addEventListener('popstate', () => {
-        pagePath.value = getPagePath()
-        if (shouldShow.value) {
-          setTimeout(() => createWidget(), 100)
-        }
-      })
     })
 
     onUnmounted(() => {

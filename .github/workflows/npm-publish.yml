@@ -17,6 +17,11 @@ jobs:
   publish:
     # 运行环境：最新版Ubuntu（GitHub提供的虚拟环境）
     runs-on: ubuntu-latest
+    # 关键：必须设置 id-token 权限为 write，用于获取 OIDC 令牌
+    permissions:
+      id-token: write  # 核心权限，不可省略
+      contents: read   # 读取仓库内容
+
     # 任务步骤
     steps:
       # 步骤1：拉取GitHub仓库的代码到虚拟环境
@@ -34,13 +39,20 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # 步骤4：构建项目（TS转JS）
+      # 步骤4：代码检查（ESLint）
+      - name: Lint code
+        run: npm run lint
+
+      # 步骤5：运行测试（Vitest）
+      - name: Run tests
+        run: npm run test
+
+      # 步骤6：构建项目（TS转JS）
       - name: Build project
         run: npm run build
 
-      # 步骤5：核心步骤——发布到npm
+      # 步骤7：核心步骤——发布到npm
       - name: Publish to npm
-        run: npm publish --access public  # 作用域包（@用户名/包名）必须加--access public，普通包可省略
-        env:
-          # 从GitHub Secrets中读取npm令牌，注入环境变量（npm会自动读取这个变量完成登录）
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        # 使用 npm 官方的 publish 命令，自动通过 OIDC 验证
+        run: npm publish --provenance --access public
+        # 注意：如果是私有包，去掉 --access public；--provenance 可选，用于生成发布溯源信息
