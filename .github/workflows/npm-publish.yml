@@ -53,6 +53,6 @@ jobs:
 
       # 步骤7：核心步骤——发布到npm
       - name: Publish to npm
-        # 使用 npm 官方的 publish 命令，自动通过 OIDC 验证
         run: npm publish --provenance --access public
-        # 注意：如果是私有包，去掉 --access public；--provenance 可选，用于生成发布溯源信息
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
