@@ -129,8 +129,8 @@ export const CopyPageWidget = defineComponent({
     }
 
     const createWidget = () => {
-      // Find h1 title
-      const h1 = document.querySelector('.vp-page-content h1') as HTMLHeadingElement
+      // Find h1 title (support multiple themes)
+      const h1 = document.querySelector('.vp-page-title h1, main h1, .vp-page-content h1, article h1') as HTMLHeadingElement
       if (!h1) return null
 
       // Remove existing widget
@@ -181,9 +181,13 @@ export const CopyPageWidget = defineComponent({
         menu.style.display = isVisible ? 'none' : 'block'
       })
 
-      container.querySelector('[data-action="copy"]')?.addEventListener('click', () => {
+      container.querySelector('[data-action="copy"]')?.addEventListener('click', async () => {
         menu.style.display = 'none'
-        copyAsMarkdown()
+        try {
+          await copyAsMarkdown()
+        } catch (err) {
+          console.error('Copy page error:', err)
+        }
       })
 
       container.querySelector('[data-action="view"]')?.addEventListener('click', () => {
