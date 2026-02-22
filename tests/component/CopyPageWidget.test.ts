@@ -220,7 +220,7 @@ describe('CopyPageWidget Component', () => {
       expect(copyButton).toBeTruthy()
 
       if (copyButton) {
-        await copyButton.click()
+        copyButton.click()
         await new Promise(resolve => setTimeout(resolve, 50))
         expect(mockClipboard.writeText).toHaveBeenCalledWith('# Test Page\n\nThis is a test page.')
       }
@@ -241,7 +241,7 @@ describe('CopyPageWidget Component', () => {
       const copyButton = document.querySelector('[data-action="copy"]') as HTMLButtonElement
 
       if (copyButton) {
-        await copyButton.click()
+        copyButton.click()
         await new Promise(resolve => setTimeout(resolve, 100))
 
         const toast = document.querySelector('.copy-page-toast')
@@ -267,7 +267,7 @@ describe('CopyPageWidget Component', () => {
       const copyButton = document.querySelector('[data-action="copy"]') as HTMLButtonElement
 
       if (copyButton) {
-        await copyButton.click()
+        copyButton.click()
         await new Promise(resolve => setTimeout(resolve, 100))
 
         const toast = document.querySelector('.copy-page-toast.error')
@@ -312,7 +312,7 @@ describe('CopyPageWidget Component', () => {
 
     it('should create blob with correct content type', async () => {
       vi.spyOn(window, 'open').mockReturnValue(null)
-      const blobSpy = vi.spyOn(global, 'Blob').mockImplementation(function (parts, options) {
+      const blobSpy = vi.spyOn(global, 'Blob').mockImplementation(function (_parts, options) {
         return { type: options?.type } as any
       })
 
