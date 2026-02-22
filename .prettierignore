@@ -1,0 +1,5 @@
+lib/
+node_modules/
+playground/
+coverage/
+*.md

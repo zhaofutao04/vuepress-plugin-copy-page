@@ -1,4 +1,4 @@
-import { defineComponent, h, ref, computed, onMounted, onUnmounted, createApp } from 'vue'
+import { defineComponent, ref, computed, onMounted, onUnmounted } from 'vue'
 
 declare global {
   interface Window {
@@ -85,7 +85,8 @@ export const CopyPageWidget = defineComponent({
         if (markdownSource.value) {
           await navigator.clipboard.writeText(markdownSource.value)
         } else {
-          const contentEl = document.querySelector('.theme-default-content') ||
+          const contentEl =
+            document.querySelector('.theme-default-content') ||
             document.querySelector('.vp-doc') ||
             document.querySelector('article')
           if (contentEl) {
@@ -130,7 +131,9 @@ export const CopyPageWidget = defineComponent({
 
     const createWidget = () => {
       // Find h1 title (support multiple themes)
-      const h1 = document.querySelector('.vp-page-title h1, main h1, .vp-page-content h1, article h1') as HTMLHeadingElement
+      const h1 = document.querySelector(
+        '.vp-page-title h1, main h1, .vp-page-content h1, article h1'
+      ) as HTMLHeadingElement
       if (!h1) return null
 
       // Remove existing widget
@@ -237,7 +240,7 @@ export const CopyPageWidget = defineComponent({
     })
 
     return () => null // Render nothing, widget is inserted via DOM
-  }
+  },
 })
 
 export default CopyPageWidget

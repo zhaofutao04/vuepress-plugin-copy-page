@@ -1,0 +1,259 @@
+// Custom styles for the playground
+// You can add custom styles here if needed
+
+// Configuration Panel Styles
+
+.config-panel-toggle {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 24px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(102, 126, 234, 0.5);
+  }
+
+  .config-icon {
+    font-size: 16px;
+  }
+}
+
+.config-panel-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 380px;
+  max-width: 90vw;
+  height: 100vh;
+  background: var(--c-bg, #ffffff);
+  box-shadow: -4px 0 20px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  overflow-y: auto;
+  animation: slideIn 0.3s ease;
+
+  @keyframes slideIn {
+    from {
+      transform: translateX(100%);
+    }
+    to {
+      transform: translateX(0);
+    }
+  }
+}
+
+.config-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  border-bottom: 1px solid var(--c-border, #e0e0e0);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+
+  h3 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+  }
+
+  .config-close {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    font-size: 24px;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+  }
+}
+
+.config-panel-content {
+  padding: 20px;
+}
+
+.config-info {
+  padding: 15px;
+  background: var(--c-bg-soft, #f5f5f5);
+  border-radius: 8px;
+  margin-bottom: 20px;
+
+  strong {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 13px;
+    color: var(--c-text, #333);
+  }
+
+  code {
+    display: block;
+    padding: 8px;
+    background: var(--c-bg, #fff);
+    border-radius: 4px;
+    font-family: monospace;
+    font-size: 12px;
+    margin-bottom: 10px;
+    word-break: break-all;
+  }
+
+  .status-enabled {
+    color: #4caf50;
+    font-weight: 500;
+  }
+
+  .status-disabled {
+    color: #f44336;
+    font-weight: 500;
+  }
+}
+
+.config-group {
+  margin-bottom: 20px;
+
+  label {
+    display: block;
+    font-weight: 500;
+    margin-bottom: 8px;
+    color: var(--c-text, #333);
+  }
+
+  textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid var(--c-border, #e0e0e0);
+    border-radius: 6px;
+    font-family: monospace;
+    font-size: 13px;
+    resize: vertical;
+    background: var(--c-bg, #fff);
+    color: var(--c-text, #333);
+
+    &:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+  }
+
+  small {
+    display: block;
+    margin-top: 6px;
+    color: var(--c-text-light, #666);
+    font-size: 12px;
+  }
+}
+
+.config-actions {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+
+  button {
+    flex: 1;
+    padding: 12px;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-reset {
+    background: var(--c-bg-soft, #f5f5f5);
+    color: var(--c-text, #333);
+
+    &:hover {
+      background: var(--c-border, #e0e0e0);
+    }
+  }
+
+  .btn-apply {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+
+    &:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+  }
+}
+
+.config-help {
+  padding: 15px;
+  background: var(--c-bg-soft, #f5f5f5);
+  border-radius: 8px;
+
+  h4 {
+    margin: 0 0 10px 0;
+    font-size: 14px;
+    color: var(--c-text, #333);
+  }
+
+  ul {
+    margin: 0;
+    padding-left: 20px;
+    font-size: 13px;
+    color: var(--c-text-light, #666);
+
+    li {
+      margin-bottom: 6px;
+
+      &:last-child {
+        margin-bottom: 0;
+      }
+    }
+  }
+}
+
+// Dark mode support
+html.dark {
+  .config-panel-drawer {
+    background: #1e1e1e;
+  }
+
+  .config-info,
+  .config-help {
+    background: #2a2a2a;
+  }
+
+  .config-group {
+    textarea {
+      background: #2a2a2a;
+      border-color: #444;
+      color: #e0e0e0;
+    }
+  }
+
+  .btn-reset {
+    background: #2a2a2a;
+    color: #e0e0e0;
+
+    &:hover {
+      background: #363636;
+    }
+  }
+}
+

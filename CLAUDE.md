@@ -66,7 +66,7 @@ The plugin has two main parts:
 `src/client/index.ts` is missing from source but the compiled `lib/client/index.js` exists. This file should export the client config:
 
 ```ts
-import { defineClientConfig } from '@vuepress/client'
+import { defineClientConfig } from 'vuepress/client'
 import { CopyPageWidget } from './CopyPageWidget.js'
 
 export { CopyPageWidget }
