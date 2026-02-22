@@ -11,7 +11,7 @@
 [![npm version](https://img.shields.io/npm/v/vuepress-plugin-copy-page)](https://www.npmjs.com/package/vuepress-plugin-copy-page)
 [![license](https://img.shields.io/npm/l/vuepress-plugin-copy-page)](LICENSE)
 [![downloads](https://img.shields.io/npm/dm/vuepress-plugin-copy-page)](https://www.npmjs.com/package/vuepress-plugin-copy-page)
-
+[![Publish to npm](https://github.com/zhaofutao04/vuepress-plugin-copy-page/actions/workflows/npm-publish.yml/badge.svg)](https://github.com/zhaofutao04/vuepress-plugin-copy-page/actions/workflows/npm-publish.yml)
 ---
 
 ## English {#english}

@@ -15,5 +15,5 @@
   <!-- 红色斜体 Z -->
   <text x="100" y="140" text-anchor="middle" fill="#e94560" font-size="120" font-family="Georgia, serif" font-weight="bold" font-style="italic">Z</text>
   <!-- 白色 blog 文字 -->
-  <text x="100" y="105" text-anchor="middle" fill="white" font-size="20" font-family="Georgia, serif" font-style="italic">b l o g</text>
+  <text x="100" y="105" text-anchor="middle" fill="white" font-size="20" font-family="Georgia, serif" font-style="italic">copy page</text>
 </svg>
