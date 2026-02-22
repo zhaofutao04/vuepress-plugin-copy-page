@@ -5,6 +5,10 @@ import { copyPagePlugin } from '../../src/index.js'
 export default {
   bundler: viteBundler(),
 
+  head: [
+    ['link', { rel: 'icon', type: 'image/svg+xml', href: '/logo.svg' }],
+  ],
+
   // 多语言配置 / i18n configuration
   locales: {
     '/': {
@@ -20,6 +24,7 @@ export default {
   },
 
   theme: defaultTheme({
+    logo: '/logo.svg',
     // 主题多语言配置 / Theme i18n configuration
     locales: {
       '/': {

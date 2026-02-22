@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200">
+  <defs>
+    <linearGradient id="shiny-black" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#3a3a3a;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#1a1a1a;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#2a2a2a;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <!-- 亮黑色渐变背景 -->
+  <circle cx="100" cy="100" r="90" fill="url(#shiny-black)"/>
+  <!-- 外圈深灰圆环 -->
+  <circle cx="100" cy="100" r="95" fill="none" stroke="#2a2a2a" stroke-width="8"/>
+  <!-- 内圈白色细圆环 -->
+  <circle cx="100" cy="100" r="90" fill="none" stroke="white" stroke-width="5"/>
+  <!-- 红色斜体 Z -->
+  <text x="100" y="140" text-anchor="middle" fill="#e94560" font-size="120" font-family="Georgia, serif" font-weight="bold" font-style="italic">Z</text>
+  <!-- 白色 blog 文字 -->
+  <text x="100" y="105" text-anchor="middle" fill="white" font-size="20" font-family="Georgia, serif" font-style="italic">b l o g</text>
+</svg>
