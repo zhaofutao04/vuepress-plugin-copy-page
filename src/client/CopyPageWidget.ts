@@ -32,7 +32,15 @@ export const CopyPageWidget = defineComponent({
     const mounted = ref(false)
     const pagePath = ref('')
     const pageTitle = ref('')
+    const currentLang = ref('en-US')
     let widgetEl: HTMLElement | null = null
+
+    // Update language on mount and route change
+    const updateLang = () => {
+      if (typeof document !== 'undefined') {
+        currentLang.value = document.documentElement.lang || 'en-US'
+      }
+    }
 
     const options = computed(() => {
       if (typeof window !== 'undefined') {
@@ -68,7 +76,7 @@ export const CopyPageWidget = defineComponent({
      * Priority: user i18n > builtin i18n > default English
      */
     const t = (key: keyof CopyPageI18n): string => {
-      const locale = document.documentElement.lang || 'en-US'
+      const locale = currentLang.value || 'en-US'
       // User's i18n overrides builtin
       const userI18n = options.value.i18n?.[locale]
       const fallback = builtinI18n['en-US']!
@@ -309,6 +317,7 @@ export const CopyPageWidget = defineComponent({
       () => route.path,
       async (newPath) => {
         pagePath.value = newPath
+        updateLang()
         // Remove existing widget first
         widgetEl?.remove()
         widgetEl = null
@@ -336,6 +345,7 @@ export const CopyPageWidget = defineComponent({
     onMounted(() => {
       mounted.value = true
       updatePagePath()
+      updateLang()
 
       if (shouldShow.value) {
         // Wait for DOM to be ready
