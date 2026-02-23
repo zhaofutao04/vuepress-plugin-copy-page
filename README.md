@@ -8,10 +8,11 @@
 
 > 一个 VuePress 2 插件，在文档页面上添加"复制页面"按钮，允许用户以原始 Markdown 格式复制页面内容。非常适合与 ChatGPT、Claude 等 AI 工具分享文档。
 
-[![npm version](https://img.shields.io/npm/v/vuepress-plugin-copy-page)](https://www.npmjs.com/package/vuepress-plugin-copy-page)
+[![npm version](https://img.shields.io/npm/v/vuepress-plugin-copy-page?label=npm&color=blue)](https://www.npmjs.com/package/vuepress-plugin-copy-page)
+[![GitHub tag](https://img.shields.io/github/v/tag/zhaofutao04/vuepress-plugin-copy-page?label=tag&color=green)](https://github.com/zhaofutao04/vuepress-plugin-copy-page/tags)
+[![Publish Status](https://img.shields.io/github/actions/workflow/status/zhaofutao04/vuepress-plugin-copy-page/npm-publish.yml?label=publish)](https://github.com/zhaofutao04/vuepress-plugin-copy-page/actions/workflows/npm-publish.yml)
 [![license](https://img.shields.io/npm/l/vuepress-plugin-copy-page)](LICENSE)
 [![downloads](https://img.shields.io/npm/dm/vuepress-plugin-copy-page)](https://www.npmjs.com/package/vuepress-plugin-copy-page)
-[![Publish to npm](https://github.com/zhaofutao04/vuepress-plugin-copy-page/actions/workflows/npm-publish.yml/badge.svg)](https://github.com/zhaofutao04/vuepress-plugin-copy-page/actions/workflows/npm-publish.yml)
 ---
 
 ## English {#english}
