@@ -1,6 +1,6 @@
 {
   "name": "vuepress-plugin-copy-page",
-  "version": "1.1.6-rc.1",
+  "version": "1.1.6",
   "description": "A VuePress 2 plugin that adds a Copy Page button to copy page content as Markdown. Perfect for sharing documentation with ChatGPT, Claude, and other AI/LLM tools.",
   "keywords": [
     "vuepress",
