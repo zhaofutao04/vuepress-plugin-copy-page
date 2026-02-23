@@ -1,15 +1,24 @@
 {
   "name": "vuepress-plugin-copy-page",
   "version": "1.1.2",
-  "description": "A VuePress plugin to copy page content as Markdown for LLMs",
+  "description": "A VuePress 2 plugin that adds a Copy Page button to copy page content as Markdown. Perfect for sharing documentation with ChatGPT, Claude, and other AI/LLM tools.",
   "keywords": [
     "vuepress",
     "vuepress-plugin",
     "vuepress2",
+    "vuepress-2",
     "copy",
+    "copy-page",
+    "copy-content",
     "markdown",
     "llm",
-    "clipboard"
+    "ai",
+    "chatgpt",
+    "claude",
+    "clipboard",
+    "documentation",
+    "share",
+    "export"
   ],
   "author": "老Z",
   "license": "MIT",
@@ -75,5 +84,8 @@
   "bugs": {
     "url": "https://github.com/zhaofutao04/vuepress-plugin-copy-page/issues"
   },
-  "homepage": "https://vuepress-plugin-copy-page.zhaofutao.cn/"
+  "homepage": "https://vuepress-plugin-copy-page.zhaofutao.cn/",
+  "engines": {
+    "node": ">=18.0.0"
+  }
 }

@@ -6,15 +6,28 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 vuepress-plugin-copy-page is a VuePress 2 plugin that adds a "Copy Page" button to documentation pages, allowing users to copy page content as Markdown for use with LLMs.
 
-## Build Commands
+## Development Commands
 
 ```bash
 # Build (TypeScript compilation + copy styles)
 npm run build
 
-# The build process:
-# 1. Compiles TypeScript from src/ to lib/
-# 2. Copies src/styles/ to lib/styles/
+# Linting
+npm run lint          # Check for linting errors
+npm run lint:fix      # Auto-fix linting errors
+
+# Formatting
+npm run format        # Format code with Prettier
+npm run format:check  # Check formatting without making changes
+
+# Testing
+npm run test          # Run tests once
+npm run test:watch    # Run tests in watch mode
+npm run test:coverage # Run tests with coverage report
+
+# Playground (for manual testing)
+npm run playground:dev     # Start playground dev server
+npm run playground:build   # Build playground
 ```
 
 ## Publishing
@@ -39,6 +52,7 @@ The plugin has two main parts:
   - `clientConfigFile`: Generates a temp JS file with `window.__MARKDOWN_SOURCES__` and `window.__COPY_PAGE_OPTIONS__`
 
 ### Client-side (Runtime)
+- `src/client/index.ts` - Client config entry, registers `CopyPageWidget` as root component
 - `src/client/CopyPageWidget.ts` - Vue component that:
   - Checks if current page matches `includes`/`excludes` patterns
   - Creates a floating button with dropdown menu after the h1 element
@@ -61,24 +75,9 @@ The plugin has two main parts:
 }
 ```
 
-## Missing Files Note
+## Testing
 
-`src/client/index.ts` is missing from source but the compiled `lib/client/index.js` exists. This file should export the client config:
-
-```ts
-import { defineClientConfig } from 'vuepress/client'
-import { CopyPageWidget } from './CopyPageWidget.js'
-
-export { CopyPageWidget }
-export default defineClientConfig({
-  rootComponents: [CopyPageWidget],
-})
-```
-
-## Workflow Issues
-
-The GitHub Actions workflow references scripts that don't exist:
-- `npm run lint` - not defined in package.json
-- `npm test` - not defined in package.json
-
-These steps will fail unless the scripts are added or the workflow is updated.
+Tests are located in `tests/` directory:
+- `tests/unit/` - Unit tests for plugin logic and pattern matching
+- `tests/component/` - Component tests for Vue widgets
+- `tests/setup.ts` - Test environment setup (jsdom, Vue test utils)
