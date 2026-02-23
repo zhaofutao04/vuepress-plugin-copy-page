@@ -15,6 +15,13 @@ export interface CopyPageOptions {
      * @default 'top-right'
      */
     position?: 'top-right' | 'top-left' | 'bottom-right' | 'bottom-left';
+    /**
+     * Style mode for the button
+     * - simple: compact button size
+     * - rich: larger, more prominent button with enhanced visuals
+     * @default 'simple'
+     */
+    styleMode?: 'simple' | 'rich';
 }
 export declare const copyPagePlugin: (options?: CopyPageOptions) => Plugin;
 export default copyPagePlugin;

@@ -8,6 +8,7 @@ interface CopyPageOptions {
     includes: string[];
     excludes: string[];
     position: 'top-right' | 'top-left' | 'bottom-right' | 'bottom-left';
+    styleMode: 'simple' | 'rich';
 }
 export declare const CopyPageWidget: import("vue").DefineComponent<{}, () => null, {}, {}, {}, import("vue").ComponentOptionsMixin, import("vue").ComponentOptionsMixin, {}, string, import("vue").PublicProps, Readonly<{}> & Readonly<{}>, {}, {}, {}, {}, string, import("vue").ComponentProvideOptions, true, {}, any>;
 export default CopyPageWidget;
