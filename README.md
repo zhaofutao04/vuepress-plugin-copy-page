@@ -27,6 +27,16 @@
 - **Built-in source extraction** - No additional plugins or configuration needed
 - **Multiple h1 selector support** - Works with different VuePress themes
 - **Toast notifications** - Visual feedback when copying succeeds or fails
+- **Two style modes** - Choose between compact `simple` mode or prominent `rich` mode
+
+### Style Modes
+
+The plugin supports two visual styles:
+
+| Simple Mode (default) | Rich Mode |
+|:---------------------:|:---------:|
+| ![Simple Mode](./screenshots/simple-mode.png) | ![Rich Mode](./screenshots/rich-mode.png) |
+| Compact button, minimal footprint | Larger button, enhanced visuals |
 
 ### Installation
 
@@ -81,6 +91,7 @@ export default defineClientConfig({})
 | `includes` | `string[]` | `['/posts/']` | Path prefixes where the copy button should appear |
 | `excludes` | `string[]` | `[]` | Path prefixes where the copy button should NOT appear |
 | `position` | `'top-right' \| 'top-left' \| 'bottom-right' \| 'bottom-left'` | `'top-right'` | Position of the copy button |
+| `styleMode` | `'simple' \| 'rich'` | `'simple'` | Style mode - `simple` for compact button, `rich` for larger, more prominent button |
 
 #### Example
 
@@ -88,7 +99,8 @@ export default defineClientConfig({})
 copyPagePlugin({
   includes: ['/posts/', '/docs/', '/guide/'],
   excludes: ['/about/', '/drafts/'],
-  position: 'top-right'
+  position: 'top-right',
+  styleMode: 'rich'  // or 'simple' (default)
 })
 ```
 
@@ -117,6 +129,16 @@ copyPagePlugin({
 - **内置源码提取** - 无需额外插件或配置
 - **多种 h1 选择器支持** - 适用于不同的 VuePress 主题
 - **Toast 通知** - 复制成功或失败时的视觉反馈
+- **两种样式模式** - 可选择紧凑的 `simple` 模式或突出的 `rich` 模式
+
+### 样式模式
+
+插件支持两种视觉样式：
+
+| 简约模式（默认） | 丰富模式 |
+|:---------------:|:--------:|
+| ![简约模式](./screenshots/simple-mode.png) | ![丰富模式](./screenshots/rich-mode.png) |
+| 紧凑按钮，占用空间小 | 更大的按钮，视觉效果更突出 |
 
 ### 安装
 
@@ -171,6 +193,7 @@ export default defineClientConfig({})
 | `includes` | `string[]` | `['/posts/']` | 复制按钮应出现的路径前缀 |
 | `excludes` | `string[]` | `[]` | 复制按钮不应出现的路径前缀 |
 | `position` | `'top-right' \| 'top-left' \| 'bottom-right' \| 'bottom-left'` | `'top-right'` | 复制按钮的位置 |
+| `styleMode` | `'simple' \| 'rich'` | `'simple'` | 样式模式 - `simple` 为紧凑按钮，`rich` 为更大更突出的按钮 |
 
 #### 示例
 
@@ -178,7 +201,8 @@ export default defineClientConfig({})
 copyPagePlugin({
   includes: ['/posts/', '/docs/', '/guide/'],
   excludes: ['/about/', '/drafts/'],
-  position: 'top-right'
+  position: 'top-right',
+  styleMode: 'rich'  // 或 'simple'（默认）
 })
 ```
 
@@ -221,12 +245,26 @@ interface CopyPageOptions {
    * @default 'top-right'
    */
   position?: 'top-right' | 'top-left' | 'bottom-right' | 'bottom-left'
+
+  /**
+   * Style mode for the button
+   * 按钮样式模式
+   * - simple: compact button size
+   * - rich: larger, more prominent button
+   * @default 'simple'
+   */
+  styleMode?: 'simple' | 'rich'
 }
 ```
 
 ---
 
 ## Changelog | 更新日志
+
+### v1.1.5
+- Add `styleMode` option with `simple` and `rich` modes | 添加 `styleMode` 选项，支持 `simple` 和 `rich` 两种样式模式
+- Enhanced button styles: bolder titles, lighter descriptions | 优化按钮样式：标题加粗，描述文字变淡
+- Improved icon design with cleaner strokes | 优化图标设计，线条更清晰
 
 ### v1.0.2
 - Fix h1 selector to support multiple VuePress themes | 修复 h1 选择器以支持多种 VuePress 主题
