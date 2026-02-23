@@ -28,31 +28,38 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # 步骤2：配置Node.js环境（指定版本，和项目兼容）
+      # 步骤2：安装 pnpm
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      # 步骤3：配置Node.js环境（指定版本，和项目兼容）
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20  # 根据你的项目选择Node版本（如18、22）
           registry-url: https://registry.npmjs.org/  # 强制使用npm官方源，避免镜像源问题
+          cache: 'pnpm'
 
-      # 步骤3：安装项目依赖（CI环境推荐用npm ci，比npm install更稳定）
+      # 步骤4：安装项目依赖
       - name: Install dependencies
-        run: npm ci
+        run: pnpm install --frozen-lockfile
 
-      # 步骤4：代码检查（ESLint）
+      # 步骤5：代码检查（ESLint）
       - name: Lint code
-        run: npm run lint
+        run: pnpm run lint
 
-      # 步骤5：运行测试（Vitest）
+      # 步骤6：运行测试（Vitest）
       - name: Run tests
-        run: npm run test
+        run: pnpm run test
 
-      # 步骤6：构建项目（TS转JS）
+      # 步骤7：构建项目（TS转JS）
       - name: Build project
-        run: npm run build
+        run: pnpm run build
 
-      # 步骤7：核心步骤——发布到npm
+      # 步骤8：核心步骤——发布到npm
       - name: Publish to npm
-        run: npm publish --provenance --access public
+        run: pnpm publish --provenance --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

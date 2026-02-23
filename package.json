@@ -43,7 +43,7 @@
   ],
   "scripts": {
     "build": "tsc && cp -r src/styles lib/",
-    "prepublishOnly": "npm run build",
+    "prepublishOnly": "pnpm run build",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
@@ -51,11 +51,11 @@
     "lint:fix": "eslint src/ --fix",
     "format": "prettier --write src/",
     "format:check": "prettier --check src/",
-    "audit": "npm audit",
-    "audit:fix": "npm audit fix",
+    "audit": "pnpm audit",
+    "audit:fix": "pnpm audit --fix",
     "deps:check": "npm-check-updates",
-    "playground:dev": "cd playground && npm run dev",
-    "playground:build": "cd playground && npm run build"
+    "playground:dev": "cd playground && pnpm run dev",
+    "playground:build": "cd playground && pnpm run build"
   },
   "peerDependencies": {
     "vue": "^3.0.0",
@@ -88,10 +88,12 @@
   "engines": {
     "node": ">=18.0.0"
   },
-  "overrides": {
-    "markdown-it": "14.1.1",
-    "entities": "7.0.1",
-    "minimatch": "10.2.1",
-    "esbuild": "0.25.0"
+  "pnpm": {
+    "overrides": {
+      "markdown-it": "14.1.1",
+      "entities": "7.0.1",
+      "minimatch": "10.2.1",
+      "esbuild": "0.25.0"
+    }
   }
 }

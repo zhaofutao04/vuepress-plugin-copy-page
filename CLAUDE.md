@@ -10,24 +10,24 @@ vuepress-plugin-copy-page is a VuePress 2 plugin that adds a "Copy Page" button 
 
 ```bash
 # Build (TypeScript compilation + copy styles)
-npm run build
+pnpm run build
 
 # Linting
-npm run lint          # Check for linting errors
-npm run lint:fix      # Auto-fix linting errors
+pnpm run lint          # Check for linting errors
+pnpm run lint:fix      # Auto-fix linting errors
 
 # Formatting
-npm run format        # Format code with Prettier
-npm run format:check  # Check formatting without making changes
+pnpm run format        # Format code with Prettier
+pnpm run format:check  # Check formatting without making changes
 
 # Testing
-npm run test          # Run tests once
-npm run test:watch    # Run tests in watch mode
-npm run test:coverage # Run tests with coverage report
+pnpm run test          # Run tests once
+pnpm run test:watch    # Run tests in watch mode
+pnpm run test:coverage # Run tests with coverage report
 
 # Playground (for manual testing)
-npm run playground:dev     # Start playground dev server
-npm run playground:build   # Build playground
+pnpm run playground:dev     # Start playground dev server
+pnpm run playground:build   # Build playground
 ```
 
 ## Publishing
