@@ -1,3 +1,4 @@
+import { googleAnalyticsPlugin } from '@vuepress/plugin-google-analytics'
 import { viteBundler } from '@vuepress/bundler-vite'
 import { defaultTheme } from '@vuepress/theme-default'
 import { copyPagePlugin } from '../../src/index.js'
@@ -85,9 +86,24 @@ export default {
   }),
 
   plugins: [
+    googleAnalyticsPlugin({
+      id: 'G-RVPHNQWYYF',
+    }),
+
     copyPagePlugin({
       includes: ['/posts/', '/docs/', '/zh/posts/', '/zh/docs/'],
       excludes: ['/about.html', '/zh/about.html'],
+
+      // 样式模式: 'simple' | 'rich'
+      styleMode: 'rich',
+
+      // URL 前缀 - 复制时生成完整 URL (默认: https://vuepress-plugin-copy-page.zhaofutao.cn)
+      // urlPrefix: 'https://your-site.com',
+
+      // 复制模板: 'default' | 'withUrl' | 'withTimestamp' | 'full' | function
+      copyTemplate: 'withUrl',
+
+      // 国际化: 默认已支持 en-US 和 zh-CN
     }),
   ],
 }

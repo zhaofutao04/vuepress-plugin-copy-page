@@ -28,6 +28,8 @@
 - **Multiple h1 selector support** - Works with different VuePress themes
 - **Toast notifications** - Visual feedback when copying succeeds or fails
 - **Two style modes** - Choose between compact `simple` mode or prominent `rich` mode
+- **Custom copy templates** - Add URLs, timestamps, or custom formatting to copied content
+- **Internationalization** - Built-in support for English and Chinese
 
 ### Style Modes
 
@@ -92,6 +94,70 @@ export default defineClientConfig({})
 | `excludes` | `string[]` | `[]` | Path prefixes where the copy button should NOT appear |
 | `position` | `'top-right' \| 'top-left' \| 'bottom-right' \| 'bottom-left'` | `'top-right'` | Position of the copy button |
 | `styleMode` | `'simple' \| 'rich'` | `'simple'` | Style mode - `simple` for compact button, `rich` for larger, more prominent button |
+| `urlPrefix` | `string` | `'https://vuepress-plugin-copy-page.zhaofutao.cn'` | URL prefix for generating full URLs in copied content |
+| `copyTemplate` | `'default' \| 'withUrl' \| 'withTimestamp' \| 'full' \| function` | `'default'` | Template to format copied content |
+| `i18n` | `Record<string, CopyPageI18n>` | Built-in en-US/zh-CN | Internationalization strings by locale |
+
+#### Copy Templates
+
+The `copyTemplate` option controls how copied content is formatted:
+
+| Template | Output Format |
+|----------|---------------|
+| `'default'` | Just the markdown content |
+| `'withUrl'` | Prepend source URL |
+| `'withTimestamp'` | Prepend copy timestamp |
+| `'full'` | Include title, URL, and timestamp |
+| Custom function | `(content: string, meta: CopyMeta) => string` |
+
+Example with custom template:
+
+```ts
+copyPagePlugin({
+  copyTemplate: (content, meta) => {
+    return `# ${meta.title}\n\nSource: ${meta.url}\n\n${content}`
+  }
+})
+```
+
+The `meta` object contains:
+- `path`: Page path (e.g., `/posts/my-article/`)
+- `url`: Full URL with prefix (e.g., `https://vuepress-plugin-copy-page.zhaofutao.cn/posts/my-article/`)
+- `title`: Page title
+- `timestamp`: ISO timestamp when copy occurred
+
+#### Internationalization
+
+The plugin has built-in i18n support for `en-US` and `zh-CN`. No configuration needed - it automatically detects the page locale.
+
+To add or override translations:
+
+```ts
+copyPagePlugin({
+  i18n: {
+    // Override built-in locale
+    'en-US': {
+      copyPage: 'Copy',
+      copied: 'Done!',
+      copyFailed: 'Failed',
+      copiedToClipboard: 'Copied!',
+      copyAsMarkdown: 'Copy as Markdown',
+      viewAsMarkdown: 'View Markdown',
+      viewAsMarkdownDesc: 'Open page content in a new tab'
+    },
+    // Add new locale
+    'ja-JP': {
+      copyPage: 'ページをコピー',
+      copied: 'コピーしました!',
+      copyFailed: 'コピー失敗',
+      copiedToClipboard: 'クリップボードにコピーしました!',
+      copyAsMarkdown: 'Markdownとしてコピー',
+      viewAsMarkdown: 'Markdownを表示',
+      viewAsMarkdownDesc: '新しいタブでページコンテンツを開く'
+    }
+  }
+})
+```
 
 #### Example
 
@@ -99,8 +165,10 @@ export default defineClientConfig({})
 copyPagePlugin({
   includes: ['/posts/', '/docs/', '/guide/'],
   excludes: ['/about/', '/drafts/'],
-  position: 'top-right',
-  styleMode: 'rich'  // or 'simple' (default)
+  styleMode: 'rich',
+  copyTemplate: 'withUrl'
+  // urlPrefix is optional - defaults to https://vuepress-plugin-copy-page.zhaofutao.cn
+  // i18n is optional - en-US and zh-CN are built-in
 })
 ```
 
@@ -130,6 +198,8 @@ copyPagePlugin({
 - **多种 h1 选择器支持** - 适用于不同的 VuePress 主题
 - **Toast 通知** - 复制成功或失败时的视觉反馈
 - **两种样式模式** - 可选择紧凑的 `simple` 模式或突出的 `rich` 模式
+- **自定义复制模板** - 在复制内容中添加 URL、时间戳或自定义格式
+- **国际化支持** - 内置中英文支持
 
 ### 样式模式
 
@@ -194,6 +264,70 @@ export default defineClientConfig({})
 | `excludes` | `string[]` | `[]` | 复制按钮不应出现的路径前缀 |
 | `position` | `'top-right' \| 'top-left' \| 'bottom-right' \| 'bottom-left'` | `'top-right'` | 复制按钮的位置 |
 | `styleMode` | `'simple' \| 'rich'` | `'simple'` | 样式模式 - `simple` 为紧凑按钮，`rich` 为更大更突出的按钮 |
+| `urlPrefix` | `string` | `'https://vuepress-plugin-copy-page.zhaofutao.cn'` | 生成完整 URL 时的前缀 |
+| `copyTemplate` | `'default' \| 'withUrl' \| 'withTimestamp' \| 'full' \| function` | `'default'` | 复制内容格式模板 |
+| `i18n` | `Record<string, CopyPageI18n>` | 内置 en-US/zh-CN | 按语言配置国际化文本 |
+
+#### 复制模板
+
+`copyTemplate` 选项控制复制内容的格式：
+
+| 模板 | 输出格式 |
+|------|----------|
+| `'default'` | 仅 Markdown 内容 |
+| `'withUrl'` | 在开头添加来源 URL |
+| `'withTimestamp'` | 在开头添加复制时间戳 |
+| `'full'` | 包含标题、URL 和时间戳 |
+| 自定义函数 | `(content: string, meta: CopyMeta) => string` |
+
+自定义模板示例：
+
+```ts
+copyPagePlugin({
+  copyTemplate: (content, meta) => {
+    return `# ${meta.title}\n\n来源: ${meta.url}\n\n${content}`
+  }
+})
+```
+
+`meta` 对象包含：
+- `path`: 页面路径（如 `/posts/my-article/`）
+- `url`: 带前缀的完整 URL（如 `https://vuepress-plugin-copy-page.zhaofutao.cn/posts/my-article/`）
+- `title`: 页面标题
+- `timestamp`: 复制时的 ISO 时间戳
+
+#### 国际化
+
+插件已内置 `en-US` 和 `zh-CN` 的国际化支持，无需配置即可自动识别页面语言。
+
+如需自定义或添加其他语言：
+
+```ts
+copyPagePlugin({
+  i18n: {
+    // 覆盖内置语言
+    'zh-CN': {
+      copyPage: '复制',
+      copied: '完成!',
+      copyFailed: '失败',
+      copiedToClipboard: '已复制!',
+      copyAsMarkdown: '复制为 Markdown',
+      viewAsMarkdown: '查看 Markdown',
+      viewAsMarkdownDesc: '在新标签页中打开页面内容'
+    },
+    // 添加新语言
+    'ja-JP': {
+      copyPage: 'ページをコピー',
+      copied: 'コピーしました!',
+      copyFailed: 'コピー失敗',
+      copiedToClipboard: 'クリップボードにコピーしました!',
+      copyAsMarkdown: 'Markdownとしてコピー',
+      viewAsMarkdown: 'Markdownを表示',
+      viewAsMarkdownDesc: '新しいタブでページコンテンツを開く'
+    }
+  }
+})
+```
 
 #### 示例
 
@@ -201,8 +335,10 @@ export default defineClientConfig({})
 copyPagePlugin({
   includes: ['/posts/', '/docs/', '/guide/'],
   excludes: ['/about/', '/drafts/'],
-  position: 'top-right',
-  styleMode: 'rich'  // 或 'simple'（默认）
+  styleMode: 'rich',
+  copyTemplate: 'withUrl'
+  // urlPrefix 可选 - 默认为 https://vuepress-plugin-copy-page.zhaofutao.cn
+  // i18n 可选 - 已内置 en-US 和 zh-CN
 })
 ```
 
@@ -224,6 +360,30 @@ copyPagePlugin({
 ### Type Definitions | 类型定义
 
 ```typescript
+interface CopyPageI18n {
+  copyPage: string
+  copied: string
+  copyFailed: string
+  copiedToClipboard: string
+  copyAsMarkdown: string
+  viewAsMarkdown: string
+  viewAsMarkdownDesc: string
+}
+
+interface CopyMeta {
+  path: string
+  url: string
+  title: string
+  timestamp: string
+}
+
+type CopyTemplate =
+  | 'default'
+  | 'withUrl'
+  | 'withTimestamp'
+  | 'full'
+  | ((content: string, meta: CopyMeta) => string)
+
 interface CopyPageOptions {
   /**
    * Page path patterns where the copy button should appear
@@ -254,12 +414,37 @@ interface CopyPageOptions {
    * @default 'simple'
    */
   styleMode?: 'simple' | 'rich'
+
+  /**
+   * URL prefix to prepend to page paths
+   * 页面路径的 URL 前缀
+   * @default 'https://vuepress-plugin-copy-page.zhaofutao.cn'
+   */
+  urlPrefix?: string
+
+  /**
+   * Template to use when copying page content
+   * 复制页面内容时使用的模板
+   * @default 'default'
+   */
+  copyTemplate?: CopyTemplate
+
+  /**
+   * Internationalization configuration
+   * 国际化配置
+   */
+  i18n?: Record<string, CopyPageI18n>
 }
 ```
 
 ---
 
 ## Changelog | 更新日志
+
+### v1.2.0
+- Add `urlPrefix` option with default value `https://vuepress-plugin-copy-page.zhaofutao.cn` | 添加 `urlPrefix` 选项，默认值为 `https://vuepress-plugin-copy-page.zhaofutao.cn`
+- Add `copyTemplate` option with presets and custom function support | 添加 `copyTemplate` 选项，支持预设模板和自定义函数
+- Add `i18n` option with built-in en-US and zh-CN support | 添加 `i18n` 选项，内置中英文支持
 
 ### v1.1.5
 - Add `styleMode` option with `simple` and `rich` modes | 添加 `styleMode` 选项，支持 `simple` 和 `rich` 两种样式模式

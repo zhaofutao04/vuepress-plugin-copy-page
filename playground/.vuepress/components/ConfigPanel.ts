@@ -7,6 +7,9 @@ declare global {
       includes: string[]
       excludes: string[]
       position?: string
+      styleMode?: string
+      urlPrefix?: string
+      copyTemplate?: string
     }
   }
 }
@@ -14,7 +17,12 @@ declare global {
 interface ConfigState {
   includes: string[]
   excludes: string[]
+  styleMode: 'simple' | 'rich'
+  urlPrefix: string
+  copyTemplate: 'default' | 'withUrl' | 'withTimestamp' | 'full'
 }
+
+const DEFAULT_URL_PREFIX = 'https://vuepress-plugin-copy-page.zhaofutao.cn'
 
 export const ConfigPanel = defineComponent({
   name: 'ConfigPanel',
@@ -24,7 +32,10 @@ export const ConfigPanel = defineComponent({
 
     const config = ref<ConfigState>({
       includes: ['/posts/', '/docs/'],
-      excludes: ['/about/']
+      excludes: ['/about/'],
+      styleMode: 'rich',
+      urlPrefix: DEFAULT_URL_PREFIX,
+      copyTemplate: 'withUrl'
     })
 
     const tempIncludes = ref('')
@@ -36,7 +47,7 @@ export const ConfigPanel = defineComponent({
       if (saved) {
         try {
           const parsed = JSON.parse(saved)
-          config.value = parsed
+          config.value = { ...config.value, ...parsed }
         } catch (e) {
           console.error('Failed to parse saved config:', e)
         }
@@ -50,17 +61,24 @@ export const ConfigPanel = defineComponent({
     const saveConfig = () => {
       const newConfig: ConfigState = {
         includes: tempIncludes.value.split('\n').filter(p => p.trim()),
-        excludes: tempExcludes.value.split('\n').filter(p => p.trim())
+        excludes: tempExcludes.value.split('\n').filter(p => p.trim()),
+        styleMode: config.value.styleMode,
+        urlPrefix: config.value.urlPrefix || DEFAULT_URL_PREFIX,
+        copyTemplate: config.value.copyTemplate
       }
 
       config.value = newConfig
       localStorage.setItem('copyPageConfig', JSON.stringify(newConfig))
 
-      // Update global options
+      // Update global options (preserve other options)
       if (typeof window !== 'undefined') {
         window.__COPY_PAGE_OPTIONS__ = {
+          ...window.__COPY_PAGE_OPTIONS__,
           includes: newConfig.includes,
-          excludes: newConfig.excludes
+          excludes: newConfig.excludes,
+          styleMode: newConfig.styleMode,
+          urlPrefix: newConfig.urlPrefix,
+          copyTemplate: newConfig.copyTemplate
         }
       }
 
@@ -71,7 +89,10 @@ export const ConfigPanel = defineComponent({
     const resetConfig = () => {
       const defaultConfig: ConfigState = {
         includes: ['/posts/', '/docs/'],
-        excludes: ['/about/']
+        excludes: ['/about/'],
+        styleMode: 'rich',
+        urlPrefix: DEFAULT_URL_PREFIX,
+        copyTemplate: 'withUrl'
       }
       config.value = defaultConfig
       tempIncludes.value = defaultConfig.includes.join('\n')
@@ -124,6 +145,65 @@ export const ConfigPanel = defineComponent({
             h('div', {
               class: willShowButton.value ? 'status-enabled' : 'status-disabled'
             }, willShowButton.value ? '✓ Button Enabled' : '✗ Button Disabled')
+          ]),
+
+          // Style Mode
+          h('div', { class: 'config-group' }, [
+            h('label', {}, 'Style Mode:'),
+            h('div', { class: 'radio-group' }, [
+              h('label', { class: 'radio-label' }, [
+                h('input', {
+                  type: 'radio',
+                  name: 'styleMode',
+                  value: 'simple',
+                  checked: config.value.styleMode === 'simple',
+                  onChange: () => { config.value.styleMode = 'simple' }
+                }),
+                ' Simple'
+              ]),
+              h('label', { class: 'radio-label' }, [
+                h('input', {
+                  type: 'radio',
+                  name: 'styleMode',
+                  value: 'rich',
+                  checked: config.value.styleMode === 'rich',
+                  onChange: () => { config.value.styleMode = 'rich' }
+                }),
+                ' Rich'
+              ])
+            ]),
+            h('small', {}, 'Choose button visual style')
+          ]),
+
+          // Copy Template
+          h('div', { class: 'config-group' }, [
+            h('label', {}, 'Copy Template:'),
+            h('select', {
+              value: config.value.copyTemplate,
+              onChange: (e: Event) => {
+                config.value.copyTemplate = (e.target as HTMLSelectElement).value as ConfigState['copyTemplate']
+              }
+            }, [
+              h('option', { value: 'default' }, 'Default - Just the markdown content'),
+              h('option', { value: 'withUrl' }, 'With URL - Prepend source URL'),
+              h('option', { value: 'withTimestamp' }, 'With Timestamp - Prepend copy time'),
+              h('option', { value: 'full' }, 'Full - Include title, URL, and timestamp')
+            ]),
+            h('small', {}, 'Format of copied content')
+          ]),
+
+          // URL Prefix
+          h('div', { class: 'config-group' }, [
+            h('label', {}, 'URL Prefix:'),
+            h('input', {
+              type: 'text',
+              value: config.value.urlPrefix,
+              onInput: (e: Event) => {
+                config.value.urlPrefix = (e.target as HTMLInputElement).value
+              },
+              placeholder: DEFAULT_URL_PREFIX
+            }),
+            h('small', {}, 'URL prefix for generating full URLs in copied content')
           ]),
 
           // Includes
