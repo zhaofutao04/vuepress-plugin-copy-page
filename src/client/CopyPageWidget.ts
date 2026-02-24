@@ -313,13 +313,14 @@ export const CopyPageWidget = defineComponent({
 
     const updatePagePath = () => {
       // Prefer route.path over window.location.pathname for consistency
-      pagePath.value = route.path || window.location.pathname
+      pagePath.value = route?.path || window.location.pathname
     }
 
     // Use watchEffect for reliable route change detection
     // This re-runs whenever route.path changes, providing better SPA navigation support
     watchEffect(async () => {
-      const currentPath = route.path
+      // Safely access route.path - route might be undefined in some edge cases
+      const currentPath = route?.path
 
       // Skip if path is empty (initial state)
       if (!currentPath) return
