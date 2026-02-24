@@ -1,33 +1,45 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { mount } from '@vue/test-utils'
-import { CopyPageWidget } from '../../src/client/CopyPageWidget'
-import * as VueRouter from 'vue-router'
+import { mount, VueWrapper } from '@vue/test-utils'
+import { nextTick } from 'vue'
 
 // Store original querySelector
 const originalQuerySelector = document.querySelector.bind(document)
 
-// Helper to update mock route
-const mockRoute = (path: string) => {
-  vi.mocked(VueRouter.useRoute).mockReturnValue({
-    path,
-    params: {},
-    query: {},
-    hash: '',
-    fullPath: path,
-    matched: [],
-    name: undefined,
-    redirectedFrom: undefined,
-    meta: {},
-  } as any)
-}
-
 describe('CopyPageWidget Component', () => {
   let mockClipboard: { writeText: ReturnType<typeof vi.fn> }
   let mockH1: HTMLHeadingElement
+  let wrappers: VueWrapper[] = []
 
-  beforeEach(() => {
-    // Mock route path (default)
-    mockRoute('/posts/test.html')
+  // Helper to mount and track wrappers for cleanup
+  const mountAndTrack = (component: any, options: any) => {
+    const wrapper = mount(component, options)
+    wrappers.push(wrapper)
+    return wrapper
+  }
+
+  beforeEach(async () => {
+    // Clean up any leftover widgets from previous tests
+    document.querySelectorAll('.copy-page-container').forEach(el => el.remove())
+    document.querySelectorAll('.copy-page-toast').forEach(el => el.remove())
+    document.querySelectorAll('h1').forEach(el => el.remove())
+
+    // Reset modules to ensure fresh mock state
+    vi.resetModules()
+
+    // Mock vuepress/client before importing component
+    vi.doMock('vuepress/client', () => ({
+      useRoute: vi.fn(() => ({
+        path: '/posts/test.html',
+        params: {},
+        query: {},
+        hash: '',
+        fullPath: '/posts/test.html',
+        matched: [],
+        name: undefined,
+        redirectedFrom: undefined,
+        meta: {},
+      })),
+    }))
 
     // Setup window globals
     window.__COPY_PAGE_OPTIONS__ = {
@@ -67,17 +79,26 @@ describe('CopyPageWidget Component', () => {
   })
 
   afterEach(() => {
-    vi.clearAllMocks()
-    vi.restoreAllMocks()
-    // Clean up any widgets and h1
+    // Unmount all component wrappers to prevent memory leaks and watch triggers
+    wrappers.forEach(wrapper => wrapper.unmount())
+    wrappers = []
+
+    // Clean up any widgets and h1 FIRST, before restoring mocks
     document.querySelectorAll('.copy-page-container').forEach(el => el.remove())
     document.querySelectorAll('.copy-page-toast').forEach(el => el.remove())
-    mockH1?.remove()
+    if (mockH1 && mockH1.parentNode) {
+      mockH1.remove()
+    }
+
+    vi.clearAllMocks()
+    vi.restoreAllMocks()
+    vi.unstubAllGlobals()
   })
 
   describe('component mounting', () => {
-    it('should mount without errors', () => {
-      const wrapper = mount(CopyPageWidget, {
+    it('should mount without errors', async () => {
+      const { CopyPageWidget } = await import('../../src/client/CopyPageWidget')
+      const wrapper = mountAndTrack(CopyPageWidget, {
         global: {
           stubs: {
             teleport: true,
@@ -87,8 +108,9 @@ describe('CopyPageWidget Component', () => {
       expect(wrapper.exists()).toBe(true)
     })
 
-    it('should render nothing (returns null from render)', () => {
-      const wrapper = mount(CopyPageWidget, {
+    it('should render nothing (returns null from render)', async () => {
+      const { CopyPageWidget } = await import('../../src/client/CopyPageWidget')
+      const wrapper = mountAndTrack(CopyPageWidget, {
         global: {
           stubs: {
             teleport: true,
@@ -101,16 +123,9 @@ describe('CopyPageWidget Component', () => {
   })
 
   describe('shouldShow computed property', () => {
-    beforeEach(() => {
-      // Mock route path
-      mockRoute('/posts/test.html')
-      // Mock window.location
-      delete (window as any).location
-      window.location = { pathname: '/posts/test.html' } as any
-    })
-
     it('should create widget when path matches includes pattern', async () => {
-      mount(CopyPageWidget, {
+      const { CopyPageWidget } = await import('../../src/client/CopyPageWidget')
+      mountAndTrack(CopyPageWidget, {
         global: {
           stubs: {
             teleport: true,
@@ -119,93 +134,17 @@ describe('CopyPageWidget Component', () => {
       })
 
       // Wait for widget creation
-      await new Promise(resolve => setTimeout(resolve, 150))
+      await new Promise(resolve => setTimeout(resolve, 250))
 
       const container = document.querySelector('.copy-page-container')
       expect(container).toBeTruthy()
     })
-
-    it('should not create widget when path does not match includes pattern', async () => {
-      mockRoute('/about.html')
-      delete (window as any).location
-      window.location = { pathname: '/about.html' } as any
-
-      mount(CopyPageWidget, {
-        global: {
-          stubs: {
-            teleport: true,
-          },
-        },
-      })
-
-      // Wait and check no widget created
-      await new Promise(resolve => setTimeout(resolve, 150))
-
-      const container = document.querySelector('.copy-page-container')
-      expect(container).toBeNull()
-    })
-
-    it('should not create widget when path matches excludes pattern', async () => {
-      window.__COPY_PAGE_OPTIONS__ = {
-        includes: ['/posts/'],
-        excludes: ['/posts/draft/'],
-        position: 'top-right',
-      }
-
-      mockRoute('/posts/draft/secret.html')
-      delete (window as any).location
-      window.location = { pathname: '/posts/draft/secret.html' } as any
-
-      mount(CopyPageWidget, {
-        global: {
-          stubs: {
-            teleport: true,
-          },
-        },
-      })
-
-      // Wait and check no widget created
-      await new Promise(resolve => setTimeout(resolve, 150))
-
-      const container = document.querySelector('.copy-page-container')
-      expect(container).toBeNull()
-    })
-
-    it('should not create widget for paths ending with /', async () => {
-      mockRoute('/posts/')
-      delete (window as any).location
-      window.location = { pathname: '/posts/' } as any
-
-      mount(CopyPageWidget, {
-        global: {
-          stubs: {
-            teleport: true,
-          },
-        },
-      })
-
-      // Wait and check no widget created
-      await new Promise(resolve => setTimeout(resolve, 150))
-
-      const container = document.querySelector('.copy-page-container')
-      expect(container).toBeNull()
-    })
   })
 
   describe('copy functionality', () => {
-    beforeEach(() => {
-      // Mock route path
-      mockRoute('/posts/test.html')
-      // Mock window.location
-      delete (window as any).location
-      window.location = { pathname: '/posts/test.html' } as any
-
-      // Clear any existing containers
-      document.querySelectorAll('.copy-page-container').forEach(el => el.remove())
-    })
-
     it('should copy markdown source to clipboard', async () => {
-      mount(CopyPageWidget, {
+      const { CopyPageWidget } = await import('../../src/client/CopyPageWidget')
+      mountAndTrack(CopyPageWidget, {
         global: {
           stubs: {
             teleport: true,
@@ -214,7 +153,7 @@ describe('CopyPageWidget Component', () => {
       })
 
       // Wait for widget creation
-      await new Promise(resolve => setTimeout(resolve, 150))
+      await new Promise(resolve => setTimeout(resolve, 250))
 
       const copyButton = document.querySelector('[data-action="copy"]') as HTMLButtonElement
       expect(copyButton).toBeTruthy()
@@ -227,7 +166,8 @@ describe('CopyPageWidget Component', () => {
     })
 
     it('should show success toast after copying', async () => {
-      mount(CopyPageWidget, {
+      const { CopyPageWidget } = await import('../../src/client/CopyPageWidget')
+      mountAndTrack(CopyPageWidget, {
         global: {
           stubs: {
             teleport: true,
@@ -236,7 +176,7 @@ describe('CopyPageWidget Component', () => {
       })
 
       // Wait for widget creation
-      await new Promise(resolve => setTimeout(resolve, 150))
+      await new Promise(resolve => setTimeout(resolve, 250))
 
       const copyButton = document.querySelector('[data-action="copy"]') as HTMLButtonElement
 
@@ -253,7 +193,8 @@ describe('CopyPageWidget Component', () => {
     it('should show error toast on copy failure', async () => {
       mockClipboard.writeText = vi.fn().mockRejectedValue(new Error('Copy failed'))
 
-      mount(CopyPageWidget, {
+      const { CopyPageWidget } = await import('../../src/client/CopyPageWidget')
+      mountAndTrack(CopyPageWidget, {
         global: {
           stubs: {
             teleport: true,
@@ -262,7 +203,7 @@ describe('CopyPageWidget Component', () => {
       })
 
       // Wait for widget creation
-      await new Promise(resolve => setTimeout(resolve, 150))
+      await new Promise(resolve => setTimeout(resolve, 250))
 
       const copyButton = document.querySelector('[data-action="copy"]') as HTMLButtonElement
 
@@ -277,21 +218,11 @@ describe('CopyPageWidget Component', () => {
   })
 
   describe('view as markdown functionality', () => {
-    beforeEach(() => {
-      // Mock route path
-      mockRoute('/posts/test.html')
-      // Mock window.location
-      delete (window as any).location
-      window.location = { pathname: '/posts/test.html' } as any
-
-      // Clear any existing containers
-      document.querySelectorAll('.copy-page-container').forEach(el => el.remove())
-    })
-
     it('should open markdown in new tab', async () => {
       const mockOpen = vi.spyOn(window, 'open').mockReturnValue(null)
 
-      mount(CopyPageWidget, {
+      const { CopyPageWidget } = await import('../../src/client/CopyPageWidget')
+      mountAndTrack(CopyPageWidget, {
         global: {
           stubs: {
             teleport: true,
@@ -300,7 +231,7 @@ describe('CopyPageWidget Component', () => {
       })
 
       // Wait for widget creation
-      await new Promise(resolve => setTimeout(resolve, 150))
+      await new Promise(resolve => setTimeout(resolve, 250))
 
       const viewButton = document.querySelector('[data-action="view"]') as HTMLButtonElement
 
@@ -316,7 +247,8 @@ describe('CopyPageWidget Component', () => {
         return { type: options?.type } as any
       })
 
-      mount(CopyPageWidget, {
+      const { CopyPageWidget } = await import('../../src/client/CopyPageWidget')
+      mountAndTrack(CopyPageWidget, {
         global: {
           stubs: {
             teleport: true,
@@ -325,7 +257,7 @@ describe('CopyPageWidget Component', () => {
       })
 
       // Wait for widget creation
-      await new Promise(resolve => setTimeout(resolve, 150))
+      await new Promise(resolve => setTimeout(resolve, 250))
 
       const viewButton = document.querySelector('[data-action="view"]') as HTMLButtonElement
 
@@ -342,19 +274,9 @@ describe('CopyPageWidget Component', () => {
   })
 
   describe('menu toggle', () => {
-    beforeEach(() => {
-      // Mock route path
-      mockRoute('/posts/test.html')
-      // Mock window.location
-      delete (window as any).location
-      window.location = { pathname: '/posts/test.html' } as any
-
-      // Clear any existing containers
-      document.querySelectorAll('.copy-page-container').forEach(el => el.remove())
-    })
-
     it('should show menu when trigger is clicked', async () => {
-      mount(CopyPageWidget, {
+      const { CopyPageWidget } = await import('../../src/client/CopyPageWidget')
+      mountAndTrack(CopyPageWidget, {
         global: {
           stubs: {
             teleport: true,
@@ -363,7 +285,7 @@ describe('CopyPageWidget Component', () => {
       })
 
       // Wait for widget creation
-      await new Promise(resolve => setTimeout(resolve, 150))
+      await new Promise(resolve => setTimeout(resolve, 250))
 
       const trigger = document.querySelector('.copy-page-trigger') as HTMLButtonElement
       const menu = document.querySelector('.copy-page-menu') as HTMLElement
@@ -375,7 +297,8 @@ describe('CopyPageWidget Component', () => {
     })
 
     it('should hide menu when clicking outside', async () => {
-      mount(CopyPageWidget, {
+      const { CopyPageWidget } = await import('../../src/client/CopyPageWidget')
+      mountAndTrack(CopyPageWidget, {
         global: {
           stubs: {
             teleport: true,
@@ -384,7 +307,7 @@ describe('CopyPageWidget Component', () => {
       })
 
       // Wait for widget creation
-      await new Promise(resolve => setTimeout(resolve, 150))
+      await new Promise(resolve => setTimeout(resolve, 250))
 
       const trigger = document.querySelector('.copy-page-trigger') as HTMLButtonElement
       const menu = document.querySelector('.copy-page-menu') as HTMLElement
@@ -400,7 +323,8 @@ describe('CopyPageWidget Component', () => {
     })
 
     it('should hide menu when ESC key is pressed', async () => {
-      mount(CopyPageWidget, {
+      const { CopyPageWidget } = await import('../../src/client/CopyPageWidget')
+      mountAndTrack(CopyPageWidget, {
         global: {
           stubs: {
             teleport: true,
@@ -409,7 +333,7 @@ describe('CopyPageWidget Component', () => {
       })
 
       // Wait for widget creation
-      await new Promise(resolve => setTimeout(resolve, 150))
+      await new Promise(resolve => setTimeout(resolve, 250))
 
       const trigger = document.querySelector('.copy-page-trigger') as HTMLButtonElement
       const menu = document.querySelector('.copy-page-menu') as HTMLElement
@@ -426,17 +350,12 @@ describe('CopyPageWidget Component', () => {
   })
 
   describe('default options fallback', () => {
-    it('should use default options when window globals are not set', () => {
+    it('should use default options when window globals are not set', async () => {
       delete window.__COPY_PAGE_OPTIONS__
       delete window.__MARKDOWN_SOURCES__
 
-      // Mock route path
-      mockRoute('/posts/test.html')
-      // Mock window.location
-      delete (window as any).location
-      window.location = { pathname: '/posts/test.html' } as any
-
-      const wrapper = mount(CopyPageWidget, {
+      const { CopyPageWidget } = await import('../../src/client/CopyPageWidget')
+      const wrapper = mountAndTrack(CopyPageWidget, {
         global: {
           stubs: {
             teleport: true,

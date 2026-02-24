@@ -213,6 +213,9 @@ export const CopyPageWidget = defineComponent({
     }
 
     const createWidget = () => {
+      // Check if we should show the widget
+      if (!shouldShow.value) return null
+
       // Find h1 title (support multiple themes)
       const h1 = document.querySelector(
         '.vp-page-title h1, main h1, .vp-page-content h1, article h1'
@@ -309,7 +312,8 @@ export const CopyPageWidget = defineComponent({
     }
 
     const updatePagePath = () => {
-      pagePath.value = window.location.pathname
+      // Prefer route.path over window.location.pathname for consistency
+      pagePath.value = route.path || window.location.pathname
     }
 
     // Watch for route changes (handles Vue Router navigation)
