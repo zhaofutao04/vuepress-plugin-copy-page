@@ -1,7 +1,7 @@
 import { googleAnalyticsPlugin } from '@vuepress/plugin-google-analytics'
 import { viteBundler } from '@vuepress/bundler-vite'
 import { defaultTheme } from '@vuepress/theme-default'
-import { copyPagePlugin } from '../../src/index.js'
+import { copyPagePlugin } from '../../src'
 
 export default {
   bundler: viteBundler(),
