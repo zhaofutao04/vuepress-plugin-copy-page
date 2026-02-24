@@ -1,6 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { mount, VueWrapper } from '@vue/test-utils'
-import { nextTick } from 'vue'
 
 // Store original querySelector
 const originalQuerySelector = document.querySelector.bind(document)
@@ -46,6 +45,7 @@ describe('CopyPageWidget Component', () => {
       includes: ['/posts/'],
       excludes: [],
       position: 'top-right',
+      styleMode: 'simple',
     }
     window.__MARKDOWN_SOURCES__ = {
       '/posts/test.html': '# Test Page\n\nThis is a test page.',
