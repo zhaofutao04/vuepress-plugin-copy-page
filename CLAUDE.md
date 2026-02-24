@@ -42,6 +42,22 @@ git push origin v1.0.3
 
 The workflow requires `NPM_TOKEN` secret to be configured in GitHub repository settings. The token must have automation/2FA bypass permissions.
 
+### Release Process
+1. Update version in `package.json`
+2. Commit: `git commit -m "chore: bump version to x.x.x"`
+3. Create tag: `git tag vx.x.x`
+4. Push: `git push origin main --tags`
+5. GitHub Actions will automatically publish to npm
+
+### Pre-release Versions
+For RC/alpha/beta versions:
+```bash
+# Update package.json to "version": "1.2.2-rc.1"
+git commit -am "chore: bump version to 1.2.2-rc.1"
+git tag v1.2.2-rc.1
+git push origin main --tags
+```
+
 ## Architecture
 
 The plugin has two main parts:
@@ -119,3 +135,81 @@ The `copyTemplate` option controls how copied content is formatted:
 ### URL Prefix
 
 When `urlPrefix` is not configured, the default `https://vuepress-plugin-copy-page.zhaofutao.cn` is used as fallback. This ensures copied content always has a valid URL reference.
+
+## Known Issues & Solutions
+
+### SPA Navigation Bug
+**Problem:** Copy page button doesn't appear when navigating from homepage via SPA navigation, but works after page refresh.
+
+**Solution:** Use `watchEffect` instead of `watch` for route tracking:
+```typescript
+// src/client/CopyPageWidget.ts
+watchEffect(async () => {
+  const currentPath = route?.path
+  if (!currentPath) return
+  pagePath.value = currentPath
+  // ... create widget logic
+})
+```
+
+### Route Null Safety
+**Problem:** `TypeError: Cannot read properties of undefined (reading 'path')`
+
+**Solution:** Use optional chaining when accessing route:
+```typescript
+const currentPath = route?.path
+pagePath.value = route?.path || window.location.pathname
+```
+
+### TypeScript Type Narrowing
+**Problem:** `TS2349: This expression is not callable. Type never has no call signatures.`
+
+**Solution:** Add explicit type check and assertion for optional function types:
+```typescript
+if (template && typeof template === 'function') {
+  return (template as (content: string, meta: CopyMeta) => string)(content, meta)
+}
+```
+
+## Deployment
+
+### Cloudflare Pages
+The playground is deployed on Cloudflare Pages. After pushing changes:
+
+1. Cloudflare will auto-deploy from GitHub
+2. If changes don't appear, purge cache:
+   - Dashboard → Caching → Configuration → Purge Everything
+   - Or use custom purge: `https://vuepress-plugin-copy-page.zhaofutao.cn/assets/*`
+
+### Verifying Production Deployment
+Check if the latest code is deployed by examining the JS:
+```javascript
+// In browser console - check for watchEffect fix
+fetch('/assets/app-xxx.js').then(r => r.text()).then(c => console.log(c.includes('watchEffect')))
+```
+
+## Playground Features
+
+### Version Display
+The playground displays the package version in the navbar, dynamically read from `package.json`:
+```typescript
+// playground/.vuepress/config.ts
+import { readFileSync } from 'fs'
+const pkg = JSON.parse(readFileSync(new URL('../../package.json', import.meta.url), 'utf-8'))
+
+export default {
+  define: {
+    __VERSION__: JSON.stringify(pkg.version),
+  },
+  theme: defaultTheme({
+    locales: {
+      '/': {
+        navbar: [
+          // ...
+          { text: `v${pkg.version}`, link: 'https://www.npmjs.com/package/vuepress-plugin-copy-page' },
+        ],
+      },
+    },
+  }),
+}
+```
