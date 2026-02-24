@@ -1,4 +1,4 @@
-import { defineComponent, ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
+import { defineComponent, ref, computed, onMounted, onUnmounted, watch, nextTick, watchEffect } from 'vue'
 import { useRoute } from 'vuepress/client'
 import type { ClientOptions, CopyPageI18n, CopyMeta } from '../types.js'
 import { builtinI18n, DEFAULT_URL_PREFIX } from '../types.js'
@@ -316,26 +316,31 @@ export const CopyPageWidget = defineComponent({
       pagePath.value = route.path || window.location.pathname
     }
 
-    // Watch for route changes (handles Vue Router navigation)
-    watch(
-      () => route.path,
-      async (newPath) => {
-        pagePath.value = newPath
-        updateLang()
-        // Remove existing widget first
-        widgetEl?.remove()
-        widgetEl = null
+    // Use watchEffect for reliable route change detection
+    // This re-runs whenever route.path changes, providing better SPA navigation support
+    watchEffect(async () => {
+      const currentPath = route.path
 
-        if (shouldShow.value) {
-          // Wait for DOM to update after navigation
-          await nextTick()
-          // Use longer delay for Vue Router navigation to ensure DOM is ready
-          setTimeout(() => createWidget(), 300)
-        }
+      // Skip if path is empty (initial state)
+      if (!currentPath) return
+
+      // Update page path
+      pagePath.value = currentPath
+      updateLang()
+
+      // Remove existing widget first
+      widgetEl?.remove()
+      widgetEl = null
+
+      if (shouldShow.value && mounted.value) {
+        // Wait for DOM to update after navigation
+        await nextTick()
+        // Use longer delay for SPA navigation to ensure DOM is ready
+        setTimeout(() => createWidget(), 300)
       }
-    )
+    })
 
-    // Also watch shouldShow to react to path changes
+    // Also watch shouldShow to react to computed value changes
     watch(shouldShow, async (show) => {
       if (show && mounted.value) {
         await nextTick()
