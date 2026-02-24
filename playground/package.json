@@ -7,8 +7,7 @@
     "build": "vuepress build ."
   },
   "dependencies": {
-    "vue": "^3.5.28",
-    "vue-router": "^4.5.0"
+    "vue": "^3.5.28"
   },
   "devDependencies": {
     "@vuepress/bundler-vite": "^2.0.0-rc.26",

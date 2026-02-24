@@ -1,5 +1,5 @@
 import { defineComponent, ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute } from 'vuepress/client'
 import type { ClientOptions, CopyPageI18n, CopyMeta } from '../types.js'
 import { builtinI18n, DEFAULT_URL_PREFIX } from '../types.js'
 
