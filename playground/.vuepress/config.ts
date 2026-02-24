@@ -2,8 +2,16 @@ import { googleAnalyticsPlugin } from '@vuepress/plugin-google-analytics'
 import { viteBundler } from '@vuepress/bundler-vite'
 import { defaultTheme } from '@vuepress/theme-default'
 import { copyPagePlugin } from '../../src'
+import { readFileSync } from 'fs'
+
+// 动态读取版本号
+const pkg = JSON.parse(readFileSync(new URL('../../package.json', import.meta.url), 'utf-8'))
 
 export default {
+  // 注入全局常量，可在客户端使用 __VERSION__
+  define: {
+    __VERSION__: JSON.stringify(pkg.version),
+  },
   bundler: viteBundler(),
 
   head: [
@@ -35,6 +43,7 @@ export default {
           { text: 'Posts', link: '/posts/' },
           { text: 'Docs', link: '/docs/' },
           { text: 'About', link: '/about.html' },
+          { text: `v${pkg.version}`, link: 'https://www.npmjs.com/package/vuepress-plugin-copy-page' },
         ],
         sidebar: {
           '/posts/': [
@@ -62,6 +71,7 @@ export default {
           { text: '文章', link: '/zh/posts/' },
           { text: '文档', link: '/zh/docs/' },
           { text: '关于', link: '/zh/about.html' },
+          { text: `v${pkg.version}`, link: 'https://www.npmjs.com/package/vuepress-plugin-copy-page' },
         ],
         sidebar: {
           '/zh/posts/': [
