@@ -117,8 +117,9 @@ export const CopyPageWidget = defineComponent({
     const applyTemplate = (content: string, meta: CopyMeta): string => {
       const template = options.value.copyTemplate
 
-      if (typeof template === 'function') {
-        return template(content, meta)
+      // Check if template is a custom function
+      if (template && typeof template === 'function') {
+        return (template as (content: string, meta: CopyMeta) => string)(content, meta)
       }
 
       switch (template) {
