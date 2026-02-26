@@ -32,12 +32,12 @@ pnpm run playground:build   # Build playground
 
 ## Publishing
 
-Publishing is automated via GitHub Actions when a version tag (v1.*.*) is pushed:
+Publishing is automated via GitHub Actions when a version tag (v*.*.*) is pushed:
 
 ```bash
 # Create and push a version tag to trigger publishing
-git tag v1.0.3
-git push origin v1.0.3
+git tag v1.3.0
+git push origin v1.3.0
 ```
 
 The workflow requires `NPM_TOKEN` secret to be configured in GitHub repository settings. The token must have automation/2FA bypass permissions.
@@ -52,9 +52,9 @@ The workflow requires `NPM_TOKEN` secret to be configured in GitHub repository s
 ### Pre-release Versions
 For RC/alpha/beta versions:
 ```bash
-# Update package.json to "version": "1.2.2-rc.1"
-git commit -am "chore: bump version to 1.2.2-rc.1"
-git tag v1.2.2-rc.1
+# Update package.json to "version": "1.3.0-rc.1"
+git commit -am "chore: bump version to 1.3.0-rc.1"
+git tag v1.3.0-rc.1
 git push origin main --tags
 ```
 
@@ -66,6 +66,7 @@ The plugin has two main parts:
 - `src/index.ts` - Main plugin entry point
   - `extendsPage`: Reads original Markdown source from each page's file
   - `clientConfigFile`: Generates a temp JS file with `window.__MARKDOWN_SOURCES__` and `window.__COPY_PAGE_OPTIONS__`
+  - **Note:** `markdownSources` is module-level state (shared across plugin instances)
 
 ### Type Definitions
 - `src/types.ts` - Centralized type definitions including:
@@ -86,6 +87,9 @@ The plugin has two main parts:
   - Copies Markdown source to clipboard via `navigator.clipboard.writeText()`
   - Applies copy templates (default, withUrl, withTimestamp, full, or custom function)
   - Uses i18n translations based on page locale (builtin en-US/zh-CN + user overrides)
+  - **Event listener lifecycle:** All global listeners (click-outside, ESC) are tracked in `cleanupFns` array and removed when widget is destroyed
+  - **XSS protection:** DOM built with `createElement`/`textContent` for user i18n text; only constant SVG icons use `innerHTML`
+  - **Widget creation flow:** `watch(route.path)` → update pagePath → `watch([shouldShow, pagePath])` with `flush: 'post'` → `scheduleCreateWidget()` with 300ms delay for DOM readiness
 
 ### Key Data Flow
 1. Build: Plugin reads `.md` files → stores in `markdownSources` Record
@@ -106,9 +110,17 @@ The plugin has two main parts:
 ## Testing
 
 Tests are located in `tests/` directory:
-- `tests/unit/` - Unit tests for plugin logic and pattern matching
-- `tests/component/` - Component tests for Vue widgets
-- `tests/setup.ts` - Test environment setup (jsdom, Vue test utils)
+- `tests/unit/index.test.ts` - Plugin factory, extendsPage, clientConfigFile hooks (uses `@vitest-environment node`)
+- `tests/unit/pattern-match.test.ts` - Path matching logic (includes/excludes)
+- `tests/unit/copy-template.test.ts` - Copy template presets and custom functions
+- `tests/unit/i18n.test.ts` - Internationalization resolution and builtin locales
+- `tests/component/CopyPageWidget.test.ts` - Component mounting, copy/view, menu toggle, toast
+- `tests/setup.ts` - Test environment setup (browser-conditional: jsdom mocks, clipboard, matchMedia)
+
+### Testing Notes
+- `index.test.ts` uses `// @vitest-environment node` because it mocks Node.js `fs` module
+- `setup.ts` guards browser mocks with `typeof window !== 'undefined'` for node environment compatibility
+- Component tests use 500ms wait for widget creation (flush:post + nextTick + 300ms delay)
 
 ## Configuration Options
 
@@ -118,7 +130,6 @@ Key configuration options:
 |--------|------|---------|-------------|
 | `includes` | `string[]` | `['/posts/']` | Path prefixes where button appears |
 | `excludes` | `string[]` | `[]` | Path prefixes where button does NOT appear |
-| `styleMode` | `'simple' \| 'rich'` | `'simple'` | Button visual style |
 | `urlPrefix` | `string` | `'https://vuepress-plugin-copy-page.zhaofutao.cn'` | URL prefix for generating full URLs |
 | `copyTemplate` | `'default' \| 'withUrl' \| 'withTimestamp' \| 'full' \| function` | `'default'` | Copy content format template |
 | `i18n` | `Record<string, CopyPageI18n>` | Built-in en-US/zh-CN | Internationalization strings |
@@ -138,27 +149,22 @@ When `urlPrefix` is not configured, the default `https://vuepress-plugin-copy-pa
 
 ## Known Issues & Solutions
 
-### SPA Navigation Bug
-**Problem:** Copy page button doesn't appear when navigating from homepage via SPA navigation, but works after page refresh.
+### SPA Navigation
+**Problem:** Copy page button doesn't appear when navigating via SPA navigation.
 
-**Solution:** Use `watchEffect` instead of `watch` for route tracking:
+**Solution (v1.3.0):** Separate route tracking from widget lifecycle:
 ```typescript
-// src/client/CopyPageWidget.ts
-watchEffect(async () => {
-  const currentPath = route?.path
-  if (!currentPath) return
-  pagePath.value = currentPath
-  // ... create widget logic
-})
-```
+// Track route changes
+watch(() => route?.path, (newPath) => {
+  pagePath.value = newPath
+  updateLang()
+}, { immediate: true })
 
-### Route Null Safety
-**Problem:** `TypeError: Cannot read properties of undefined (reading 'path')`
-
-**Solution:** Use optional chaining when accessing route:
-```typescript
-const currentPath = route?.path
-pagePath.value = route?.path || window.location.pathname
+// Widget lifecycle responds to shouldShow + pagePath changes
+watch([shouldShow, pagePath], ([show]) => {
+  cleanupWidget()
+  if (show) nextTick(() => scheduleCreateWidget())
+}, { flush: 'post' })
 ```
 
 ### TypeScript Type Narrowing
@@ -171,6 +177,9 @@ if (template && typeof template === 'function') {
 }
 ```
 
+### Security: new Function() in clientConfigFile
+**Note:** `src/index.ts` uses `new Function('return ' + fnStr)()` to deserialize function templates. This is essentially `eval()` and may trigger CSP violations on strict sites. The function string only comes from developer-provided plugin options, not user input. A future improvement could serialize functions differently.
+
 ## Deployment
 
 ### Cloudflare Pages
@@ -180,13 +189,6 @@ The playground is deployed on Cloudflare Pages. After pushing changes:
 2. If changes don't appear, purge cache:
    - Dashboard → Caching → Configuration → Purge Everything
    - Or use custom purge: `https://vuepress-plugin-copy-page.zhaofutao.cn/assets/*`
-
-### Verifying Production Deployment
-Check if the latest code is deployed by examining the JS:
-```javascript
-// In browser console - check for watchEffect fix
-fetch('/assets/app-xxx.js').then(r => r.text()).then(c => console.log(c.includes('watchEffect')))
-```
 
 ## Playground Features
 

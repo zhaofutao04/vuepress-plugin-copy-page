@@ -59,20 +59,6 @@ export interface CopyPageOptions {
   excludes?: string[]
 
   /**
-   * Position of the copy button
-   * @default 'top-right'
-   */
-  position?: 'top-right' | 'top-left' | 'bottom-right' | 'bottom-left'
-
-  /**
-   * Style mode for the button
-   * - simple: compact button size
-   * - rich: larger, more prominent button with enhanced visuals
-   * @default 'simple'
-   */
-  styleMode?: 'simple' | 'rich'
-
-  /**
    * URL prefix to prepend to page paths when generating full URLs
    * Example: "https://example.com"
    */
@@ -137,8 +123,6 @@ export const builtinI18n: Record<string, CopyPageI18n> = {
 export interface ClientOptions {
   includes: string[]
   excludes: string[]
-  position: 'top-right' | 'top-left' | 'bottom-right' | 'bottom-left'
-  styleMode: 'simple' | 'rich'
   urlPrefix?: string
   copyTemplate?: CopyTemplate
   i18n?: Record<string, CopyPageI18n>

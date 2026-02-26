@@ -104,9 +104,6 @@ export default {
       includes: ['/posts/', '/docs/', '/zh/posts/', '/zh/docs/'],
       excludes: ['/about.html', '/zh/about.html'],
 
-      // 样式模式: 'simple' | 'rich'
-      styleMode: 'rich',
-
       // URL 前缀 - 复制时生成完整 URL (默认: https://vuepress-plugin-copy-page.zhaofutao.cn)
       // urlPrefix: 'https://your-site.com',
 

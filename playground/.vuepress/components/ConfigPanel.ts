@@ -6,8 +6,6 @@ declare global {
     __COPY_PAGE_OPTIONS__?: {
       includes: string[]
       excludes: string[]
-      position?: string
-      styleMode?: string
       urlPrefix?: string
       copyTemplate?: string
     }
@@ -17,7 +15,6 @@ declare global {
 interface ConfigState {
   includes: string[]
   excludes: string[]
-  styleMode: 'simple' | 'rich'
   urlPrefix: string
   copyTemplate: 'default' | 'withUrl' | 'withTimestamp' | 'full'
 }
@@ -33,7 +30,6 @@ export const ConfigPanel = defineComponent({
     const config = ref<ConfigState>({
       includes: ['/posts/', '/docs/'],
       excludes: ['/about/'],
-      styleMode: 'rich',
       urlPrefix: DEFAULT_URL_PREFIX,
       copyTemplate: 'withUrl'
     })
@@ -62,7 +58,6 @@ export const ConfigPanel = defineComponent({
       const newConfig: ConfigState = {
         includes: tempIncludes.value.split('\n').filter(p => p.trim()),
         excludes: tempExcludes.value.split('\n').filter(p => p.trim()),
-        styleMode: config.value.styleMode,
         urlPrefix: config.value.urlPrefix || DEFAULT_URL_PREFIX,
         copyTemplate: config.value.copyTemplate
       }
@@ -76,7 +71,6 @@ export const ConfigPanel = defineComponent({
           ...window.__COPY_PAGE_OPTIONS__,
           includes: newConfig.includes,
           excludes: newConfig.excludes,
-          styleMode: newConfig.styleMode,
           urlPrefix: newConfig.urlPrefix,
           copyTemplate: newConfig.copyTemplate
         }
@@ -90,7 +84,6 @@ export const ConfigPanel = defineComponent({
       const defaultConfig: ConfigState = {
         includes: ['/posts/', '/docs/'],
         excludes: ['/about/'],
-        styleMode: 'rich',
         urlPrefix: DEFAULT_URL_PREFIX,
         copyTemplate: 'withUrl'
       }
@@ -145,34 +138,6 @@ export const ConfigPanel = defineComponent({
             h('div', {
               class: willShowButton.value ? 'status-enabled' : 'status-disabled'
             }, willShowButton.value ? '✓ Button Enabled' : '✗ Button Disabled')
-          ]),
-
-          // Style Mode
-          h('div', { class: 'config-group' }, [
-            h('label', {}, 'Style Mode:'),
-            h('div', { class: 'radio-group' }, [
-              h('label', { class: 'radio-label' }, [
-                h('input', {
-                  type: 'radio',
-                  name: 'styleMode',
-                  value: 'simple',
-                  checked: config.value.styleMode === 'simple',
-                  onChange: () => { config.value.styleMode = 'simple' }
-                }),
-                ' Simple'
-              ]),
-              h('label', { class: 'radio-label' }, [
-                h('input', {
-                  type: 'radio',
-                  name: 'styleMode',
-                  value: 'rich',
-                  checked: config.value.styleMode === 'rich',
-                  onChange: () => { config.value.styleMode = 'rich' }
-                }),
-                ' Rich'
-              ])
-            ]),
-            h('small', {}, 'Choose button visual style')
           ]),
 
           // Copy Template

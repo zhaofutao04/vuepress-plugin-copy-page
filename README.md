@@ -27,18 +27,8 @@
 - **Built-in source extraction** - No additional plugins or configuration needed
 - **Multiple h1 selector support** - Works with different VuePress themes
 - **Toast notifications** - Visual feedback when copying succeeds or fails
-- **Two style modes** - Choose between compact `simple` mode or prominent `rich` mode
 - **Custom copy templates** - Add URLs, timestamps, or custom formatting to copied content
 - **Internationalization** - Built-in support for English and Chinese
-
-### Style Modes
-
-The plugin supports two visual styles:
-
-| Simple Mode (default) | Rich Mode |
-|:---------------------:|:---------:|
-| ![Simple Mode](./screenshots/simple-mode.png) | ![Rich Mode](./screenshots/rich-mode.png) |
-| Compact button, minimal footprint | Larger button, enhanced visuals |
 
 ### Installation
 
@@ -79,7 +69,7 @@ export default defineUserConfig({
 ```ts
 // .vuepress/client.ts
 import { defineClientConfig } from 'vuepress/client'
-import 'vuepress-plugin-copy-page/styles'
+import 'vuepress-plugin-copy-page/styles/index.scss'
 
 export default defineClientConfig({})
 ```
@@ -92,8 +82,6 @@ export default defineClientConfig({})
 |--------|------|---------|-------------|
 | `includes` | `string[]` | `['/posts/']` | Path prefixes where the copy button should appear |
 | `excludes` | `string[]` | `[]` | Path prefixes where the copy button should NOT appear |
-| `position` | `'top-right' \| 'top-left' \| 'bottom-right' \| 'bottom-left'` | `'top-right'` | Position of the copy button |
-| `styleMode` | `'simple' \| 'rich'` | `'simple'` | Style mode - `simple` for compact button, `rich` for larger, more prominent button |
 | `urlPrefix` | `string` | `'https://vuepress-plugin-copy-page.zhaofutao.cn'` | URL prefix for generating full URLs in copied content |
 | `copyTemplate` | `'default' \| 'withUrl' \| 'withTimestamp' \| 'full' \| function` | `'default'` | Template to format copied content |
 | `i18n` | `Record<string, CopyPageI18n>` | Built-in en-US/zh-CN | Internationalization strings by locale |
@@ -165,7 +153,6 @@ copyPagePlugin({
 copyPagePlugin({
   includes: ['/posts/', '/docs/', '/guide/'],
   excludes: ['/about/', '/drafts/'],
-  styleMode: 'rich',
   copyTemplate: 'withUrl'
   // urlPrefix is optional - defaults to https://vuepress-plugin-copy-page.zhaofutao.cn
   // i18n is optional - en-US and zh-CN are built-in
@@ -197,18 +184,8 @@ copyPagePlugin({
 - **内置源码提取** - 无需额外插件或配置
 - **多种 h1 选择器支持** - 适用于不同的 VuePress 主题
 - **Toast 通知** - 复制成功或失败时的视觉反馈
-- **两种样式模式** - 可选择紧凑的 `simple` 模式或突出的 `rich` 模式
 - **自定义复制模板** - 在复制内容中添加 URL、时间戳或自定义格式
 - **国际化支持** - 内置中英文支持
-
-### 样式模式
-
-插件支持两种视觉样式：
-
-| 简约模式（默认） | 丰富模式 |
-|:---------------:|:--------:|
-| ![简约模式](./screenshots/simple-mode.png) | ![丰富模式](./screenshots/rich-mode.png) |
-| 紧凑按钮，占用空间小 | 更大的按钮，视觉效果更突出 |
 
 ### 安装
 
@@ -249,7 +226,7 @@ export default defineUserConfig({
 ```ts
 // .vuepress/client.ts
 import { defineClientConfig } from 'vuepress/client'
-import 'vuepress-plugin-copy-page/styles'
+import 'vuepress-plugin-copy-page/styles/index.scss'
 
 export default defineClientConfig({})
 ```
@@ -262,8 +239,6 @@ export default defineClientConfig({})
 |------|------|--------|------|
 | `includes` | `string[]` | `['/posts/']` | 复制按钮应出现的路径前缀 |
 | `excludes` | `string[]` | `[]` | 复制按钮不应出现的路径前缀 |
-| `position` | `'top-right' \| 'top-left' \| 'bottom-right' \| 'bottom-left'` | `'top-right'` | 复制按钮的位置 |
-| `styleMode` | `'simple' \| 'rich'` | `'simple'` | 样式模式 - `simple` 为紧凑按钮，`rich` 为更大更突出的按钮 |
 | `urlPrefix` | `string` | `'https://vuepress-plugin-copy-page.zhaofutao.cn'` | 生成完整 URL 时的前缀 |
 | `copyTemplate` | `'default' \| 'withUrl' \| 'withTimestamp' \| 'full' \| function` | `'default'` | 复制内容格式模板 |
 | `i18n` | `Record<string, CopyPageI18n>` | 内置 en-US/zh-CN | 按语言配置国际化文本 |
@@ -335,7 +310,6 @@ copyPagePlugin({
 copyPagePlugin({
   includes: ['/posts/', '/docs/', '/guide/'],
   excludes: ['/about/', '/drafts/'],
-  styleMode: 'rich',
   copyTemplate: 'withUrl'
   // urlPrefix 可选 - 默认为 https://vuepress-plugin-copy-page.zhaofutao.cn
   // i18n 可选 - 已内置 en-US 和 zh-CN
@@ -400,22 +374,6 @@ interface CopyPageOptions {
   excludes?: string[]
 
   /**
-   * Position of the copy button
-   * 复制按钮的位置
-   * @default 'top-right'
-   */
-  position?: 'top-right' | 'top-left' | 'bottom-right' | 'bottom-left'
-
-  /**
-   * Style mode for the button
-   * 按钮样式模式
-   * - simple: compact button size
-   * - rich: larger, more prominent button
-   * @default 'simple'
-   */
-  styleMode?: 'simple' | 'rich'
-
-  /**
    * URL prefix to prepend to page paths
    * 页面路径的 URL 前缀
    * @default 'https://vuepress-plugin-copy-page.zhaofutao.cn'
@@ -441,13 +399,23 @@ interface CopyPageOptions {
 
 ## Changelog | 更新日志
 
+### v1.3.0
+- **BREAKING**: Remove `position` option | 移除 `position` 配置选项
+- **BREAKING**: Remove `styleMode` option, use rich style as default | 移除 `styleMode` 选项，使用 rich 样式作为默认样式
+- Fix memory leak: global event listeners now properly cleaned up on route change | 修复内存泄漏：路由切换时正确清理全局事件监听器
+- Fix XSS risk: use safe DOM APIs (textContent) instead of innerHTML for i18n strings | 修复 XSS 风险：使用安全的 DOM API 替代 innerHTML 注入用户文本
+- Fix race condition: merge triple widget-creation triggers into unified lifecycle | 修复竞态条件：合并三重 widget 创建触发器为统一的生命周期管理
+- Fix CI tag pattern to support future major versions (v2+) | 修复 CI 标签模式以支持未来的主版本号
+- Fix Prettier formatting issues | 修复代码格式化问题
+- Fix style import path in documentation | 修复文档中的样式导入路径
+- Improve test coverage from 79% to 94% | 测试覆盖率从 79% 提升到 94%
+
 ### v1.2.0
 - Add `urlPrefix` option with default value `https://vuepress-plugin-copy-page.zhaofutao.cn` | 添加 `urlPrefix` 选项，默认值为 `https://vuepress-plugin-copy-page.zhaofutao.cn`
 - Add `copyTemplate` option with presets and custom function support | 添加 `copyTemplate` 选项，支持预设模板和自定义函数
 - Add `i18n` option with built-in en-US and zh-CN support | 添加 `i18n` 选项，内置中英文支持
 
 ### v1.1.5
-- Add `styleMode` option with `simple` and `rich` modes | 添加 `styleMode` 选项，支持 `simple` 和 `rich` 两种样式模式
 - Enhanced button styles: bolder titles, lighter descriptions | 优化按钮样式：标题加粗，描述文字变淡
 - Improved icon design with cleaner strokes | 优化图标设计，线条更清晰
 

@@ -32,8 +32,6 @@ export const copyPagePlugin = (options: CopyPageOptions = {}): Plugin => ({
     const clientOptions: ClientOptions = {
       includes: options.includes ?? ['/posts/'],
       excludes: options.excludes ?? [],
-      position: options.position ?? 'top-right',
-      styleMode: options.styleMode ?? 'simple',
     }
 
     // Add new options if provided

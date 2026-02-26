@@ -44,8 +44,6 @@ describe('CopyPageWidget Component', () => {
     window.__COPY_PAGE_OPTIONS__ = {
       includes: ['/posts/'],
       excludes: [],
-      position: 'top-right',
-      styleMode: 'simple',
     }
     window.__MARKDOWN_SOURCES__ = {
       '/posts/test.html': '# Test Page\n\nThis is a test page.',
@@ -133,8 +131,8 @@ describe('CopyPageWidget Component', () => {
         },
       })
 
-      // Wait for widget creation
-      await new Promise(resolve => setTimeout(resolve, 250))
+      // Wait for widget creation (flush:post + nextTick + 300ms delay)
+      await new Promise(resolve => setTimeout(resolve, 500))
 
       const container = document.querySelector('.copy-page-container')
       expect(container).toBeTruthy()
@@ -152,8 +150,8 @@ describe('CopyPageWidget Component', () => {
         },
       })
 
-      // Wait for widget creation
-      await new Promise(resolve => setTimeout(resolve, 250))
+      // Wait for widget creation (flush:post + nextTick + 300ms delay)
+      await new Promise(resolve => setTimeout(resolve, 500))
 
       const copyButton = document.querySelector('[data-action="copy"]') as HTMLButtonElement
       expect(copyButton).toBeTruthy()
@@ -176,7 +174,7 @@ describe('CopyPageWidget Component', () => {
       })
 
       // Wait for widget creation
-      await new Promise(resolve => setTimeout(resolve, 250))
+      await new Promise(resolve => setTimeout(resolve, 500))
 
       const copyButton = document.querySelector('[data-action="copy"]') as HTMLButtonElement
 
@@ -203,7 +201,7 @@ describe('CopyPageWidget Component', () => {
       })
 
       // Wait for widget creation
-      await new Promise(resolve => setTimeout(resolve, 250))
+      await new Promise(resolve => setTimeout(resolve, 500))
 
       const copyButton = document.querySelector('[data-action="copy"]') as HTMLButtonElement
 
@@ -231,7 +229,7 @@ describe('CopyPageWidget Component', () => {
       })
 
       // Wait for widget creation
-      await new Promise(resolve => setTimeout(resolve, 250))
+      await new Promise(resolve => setTimeout(resolve, 500))
 
       const viewButton = document.querySelector('[data-action="view"]') as HTMLButtonElement
 
@@ -257,7 +255,7 @@ describe('CopyPageWidget Component', () => {
       })
 
       // Wait for widget creation
-      await new Promise(resolve => setTimeout(resolve, 250))
+      await new Promise(resolve => setTimeout(resolve, 500))
 
       const viewButton = document.querySelector('[data-action="view"]') as HTMLButtonElement
 
@@ -285,7 +283,7 @@ describe('CopyPageWidget Component', () => {
       })
 
       // Wait for widget creation
-      await new Promise(resolve => setTimeout(resolve, 250))
+      await new Promise(resolve => setTimeout(resolve, 500))
 
       const trigger = document.querySelector('.copy-page-trigger') as HTMLButtonElement
       const menu = document.querySelector('.copy-page-menu') as HTMLElement
@@ -307,7 +305,7 @@ describe('CopyPageWidget Component', () => {
       })
 
       // Wait for widget creation
-      await new Promise(resolve => setTimeout(resolve, 250))
+      await new Promise(resolve => setTimeout(resolve, 500))
 
       const trigger = document.querySelector('.copy-page-trigger') as HTMLButtonElement
       const menu = document.querySelector('.copy-page-menu') as HTMLElement
@@ -333,7 +331,7 @@ describe('CopyPageWidget Component', () => {
       })
 
       // Wait for widget creation
-      await new Promise(resolve => setTimeout(resolve, 250))
+      await new Promise(resolve => setTimeout(resolve, 500))
 
       const trigger = document.querySelector('.copy-page-trigger') as HTMLButtonElement
       const menu = document.querySelector('.copy-page-menu') as HTMLElement

@@ -1,4 +1,4 @@
-import { defineComponent, ref, computed, onMounted, onUnmounted, watch, nextTick, watchEffect } from 'vue'
+import { defineComponent, ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import { useRoute } from 'vuepress/client'
 import type { ClientOptions, CopyPageI18n, CopyMeta } from '../types.js'
 import { builtinI18n, DEFAULT_URL_PREFIX } from '../types.js'
@@ -13,16 +13,20 @@ declare global {
 const defaultOptions: ClientOptions = {
   includes: ['/posts/'],
   excludes: [],
-  position: 'top-right',
-  styleMode: 'simple',
 }
 
-// SVG Icons as strings - cleaner, more modern icons
+// Delay before creating widget after navigation, to wait for page content rendering
+const WIDGET_CREATION_DELAY_MS = 300
+
+// SVG Icons as strings (constant, safe for innerHTML)
 const copyIconSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>`
 
 const checkIconSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`
 
 const markdownIconSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="22" height="18" rx="2"></rect><path d="M5 17V7l3.5 4L12 7v10"></path><path d="M19 7l-5 5 5 5"></path></svg>`
+
+/** H1 selectors that cover multiple VuePress themes */
+const H1_SELECTOR = '.vp-page-title h1, main h1, .vp-page-content h1, article h1'
 
 export const CopyPageWidget = defineComponent({
   name: 'CopyPageWidget',
@@ -34,8 +38,9 @@ export const CopyPageWidget = defineComponent({
     const pageTitle = ref('')
     const currentLang = ref('en-US')
     let widgetEl: HTMLElement | null = null
+    let cleanupFns: Array<() => void> = []
+    let createWidgetTimer: ReturnType<typeof setTimeout> | null = null
 
-    // Update language on mount and route change
     const updateLang = () => {
       if (typeof document !== 'undefined') {
         currentLang.value = document.documentElement.lang || 'en-US'
@@ -72,12 +77,11 @@ export const CopyPageWidget = defineComponent({
     })
 
     /**
-     * Get translated string for a given key
+     * Get translated string for a given key.
      * Priority: user i18n > builtin i18n > default English
      */
     const t = (key: keyof CopyPageI18n): string => {
       const locale = currentLang.value || 'en-US'
-      // User's i18n overrides builtin
       const userI18n = options.value.i18n?.[locale]
       const fallback = builtinI18n['en-US']!
       const builtin = builtinI18n[locale] ?? fallback
@@ -85,21 +89,12 @@ export const CopyPageWidget = defineComponent({
       return userI18n?.[key] || builtin[key] || fallback[key] || ''
     }
 
-    /**
-     * Get page title from DOM or fallback
-     */
     const getPageTitle = (): string => {
       if (pageTitle.value) return pageTitle.value
-
-      const h1 = document.querySelector(
-        '.vp-page-title h1, main h1, .vp-page-content h1, article h1'
-      ) as HTMLHeadingElement
+      const h1 = document.querySelector(H1_SELECTOR) as HTMLHeadingElement
       return h1?.textContent?.trim() || ''
     }
 
-    /**
-     * Build copy metadata for templates
-     */
     const buildCopyMeta = (): CopyMeta => {
       const urlPrefix = options.value.urlPrefix || DEFAULT_URL_PREFIX
       const path = pagePath.value
@@ -111,13 +106,9 @@ export const CopyPageWidget = defineComponent({
       }
     }
 
-    /**
-     * Apply copy template to content
-     */
     const applyTemplate = (content: string, meta: CopyMeta): string => {
       const template = options.value.copyTemplate
 
-      // Check if template is a custom function
       if (template && typeof template === 'function') {
         return (template as (content: string, meta: CopyMeta) => string)(content, meta)
       }
@@ -167,7 +158,6 @@ export const CopyPageWidget = defineComponent({
           }
         }
 
-        // Apply template if content exists
         if (content) {
           const meta = buildCopyMeta()
           content = applyTemplate(content, meta)
@@ -192,7 +182,7 @@ export const CopyPageWidget = defineComponent({
         const blob = new Blob([content], { type: 'text/plain;charset=utf-8' })
         const url = URL.createObjectURL(blob)
         window.open(url, '_blank')
-        setTimeout(() => URL.revokeObjectURL(url), 1000)
+        setTimeout(() => URL.revokeObjectURL(url), 5000)
       }
     }
 
@@ -213,98 +203,160 @@ export const CopyPageWidget = defineComponent({
       }
     }
 
+    /**
+     * Remove all event listeners registered by the widget, clear pending timers,
+     * and remove the widget DOM element.
+     */
+    const cleanupWidget = () => {
+      if (createWidgetTimer) {
+        clearTimeout(createWidgetTimer)
+        createWidgetTimer = null
+      }
+      cleanupFns.forEach((fn) => fn())
+      cleanupFns = []
+      widgetEl?.remove()
+      widgetEl = null
+    }
+
+    /**
+     * Helper to add an event listener and track it for cleanup.
+     */
+    const addTrackedListener = <K extends keyof HTMLElementEventMap>(
+      target: EventTarget,
+      event: K,
+      handler: (e: HTMLElementEventMap[K]) => void
+    ) => {
+      target.addEventListener(event, handler as EventListener)
+      cleanupFns.push(() => target.removeEventListener(event, handler as EventListener))
+    }
+
+    /**
+     * Build the widget DOM safely using DOM APIs to avoid XSS from i18n strings.
+     * SVG icons are hardcoded constants and safe for innerHTML.
+     */
     const createWidget = () => {
-      // Check if we should show the widget
       if (!shouldShow.value) return null
 
-      // Find h1 title (support multiple themes)
-      const h1 = document.querySelector(
-        '.vp-page-title h1, main h1, .vp-page-content h1, article h1'
-      ) as HTMLHeadingElement
+      const h1 = document.querySelector(H1_SELECTOR) as HTMLHeadingElement
       if (!h1) return null
 
-      // Update page title from h1
       pageTitle.value = h1.textContent?.trim() || ''
 
-      // Remove existing widget
-      const existing = document.querySelector('.copy-page-container')
-      if (existing) existing.remove()
+      // Clean up any existing widget before creating a new one
+      cleanupWidget()
 
-      // Create container
+      // Build DOM tree safely - use textContent for all user-controlled strings
       const container = document.createElement('div')
       container.className = 'copy-page-container'
 
-      // Get style mode class
-      const styleModeClass = options.value.styleMode === 'rich' ? 'rich' : ''
+      const widget = document.createElement('div')
+      widget.className = 'copy-page-widget'
 
-      // Get translated strings
-      const copyPageText = t('copyPage')
-      const copyAsMarkdownText = t('copyAsMarkdown')
-      const viewAsMarkdownText = t('viewAsMarkdown')
-      const viewAsMarkdownDescText = t('viewAsMarkdownDesc')
+      // Trigger button
+      const trigger = document.createElement('button')
+      trigger.className = 'copy-page-trigger'
+      trigger.title = 'Copy page options'
 
-      // Create widget HTML
-      container.innerHTML = `
-        <div class="copy-page-widget ${styleModeClass}">
-          <button class="copy-page-trigger" title="Copy page options">
-            <span class="copy-page-icon">${copyIconSvg}</span>
-            <span class="copy-page-label">${copyPageText}</span>
-          </button>
-          <div class="copy-page-menu" style="display: none;">
-            <button class="copy-page-menu-item" data-action="copy">
-              <span class="menu-item-icon">${copyIconSvg}</span>
-              <span class="menu-item-text">
-                <span class="menu-item-title">${copyPageText}</span>
-                <span class="menu-item-desc">${copyAsMarkdownText}</span>
-              </span>
-            </button>
-            <button class="copy-page-menu-item" data-action="view">
-              <span class="menu-item-icon">${markdownIconSvg}</span>
-              <span class="menu-item-text">
-                <span class="menu-item-title">${viewAsMarkdownText}</span>
-                <span class="menu-item-desc">${viewAsMarkdownDescText}</span>
-              </span>
-            </button>
-          </div>
-        </div>
-      `
+      const triggerIcon = document.createElement('span')
+      triggerIcon.className = 'copy-page-icon'
+      triggerIcon.innerHTML = copyIconSvg
 
-      // Insert after h1
+      const triggerLabel = document.createElement('span')
+      triggerLabel.className = 'copy-page-label'
+      triggerLabel.textContent = t('copyPage')
+
+      trigger.appendChild(triggerIcon)
+      trigger.appendChild(triggerLabel)
+
+      // Dropdown menu
+      const menu = document.createElement('div')
+      menu.className = 'copy-page-menu'
+      menu.style.display = 'none'
+
+      // Copy menu item
+      const copyItem = document.createElement('button')
+      copyItem.className = 'copy-page-menu-item'
+      copyItem.dataset.action = 'copy'
+
+      const copyItemIcon = document.createElement('span')
+      copyItemIcon.className = 'menu-item-icon'
+      copyItemIcon.innerHTML = copyIconSvg
+
+      const copyItemText = document.createElement('span')
+      copyItemText.className = 'menu-item-text'
+
+      const copyItemTitle = document.createElement('span')
+      copyItemTitle.className = 'menu-item-title'
+      copyItemTitle.textContent = t('copyPage')
+
+      const copyItemDesc = document.createElement('span')
+      copyItemDesc.className = 'menu-item-desc'
+      copyItemDesc.textContent = t('copyAsMarkdown')
+
+      copyItemText.appendChild(copyItemTitle)
+      copyItemText.appendChild(copyItemDesc)
+      copyItem.appendChild(copyItemIcon)
+      copyItem.appendChild(copyItemText)
+
+      // View menu item
+      const viewItem = document.createElement('button')
+      viewItem.className = 'copy-page-menu-item'
+      viewItem.dataset.action = 'view'
+
+      const viewItemIcon = document.createElement('span')
+      viewItemIcon.className = 'menu-item-icon'
+      viewItemIcon.innerHTML = markdownIconSvg
+
+      const viewItemText = document.createElement('span')
+      viewItemText.className = 'menu-item-text'
+
+      const viewItemTitle = document.createElement('span')
+      viewItemTitle.className = 'menu-item-title'
+      viewItemTitle.textContent = t('viewAsMarkdown')
+
+      const viewItemDesc = document.createElement('span')
+      viewItemDesc.className = 'menu-item-desc'
+      viewItemDesc.textContent = t('viewAsMarkdownDesc')
+
+      viewItemText.appendChild(viewItemTitle)
+      viewItemText.appendChild(viewItemDesc)
+      viewItem.appendChild(viewItemIcon)
+      viewItem.appendChild(viewItemText)
+
+      // Assemble DOM tree
+      menu.appendChild(copyItem)
+      menu.appendChild(viewItem)
+      widget.appendChild(trigger)
+      widget.appendChild(menu)
+      container.appendChild(widget)
+
       h1.after(container)
       widgetEl = container
 
-      // Setup event listeners
-      const trigger = container.querySelector('.copy-page-trigger') as HTMLButtonElement
-      const menu = container.querySelector('.copy-page-menu') as HTMLDivElement
-
-      trigger?.addEventListener('click', (e) => {
+      // Setup event listeners with automatic cleanup tracking
+      addTrackedListener(trigger, 'click', (e: Event) => {
         e.stopPropagation()
         const isVisible = menu.style.display !== 'none'
         menu.style.display = isVisible ? 'none' : 'block'
       })
 
-      container.querySelector('[data-action="copy"]')?.addEventListener('click', async () => {
+      addTrackedListener(copyItem, 'click', () => {
         menu.style.display = 'none'
-        try {
-          await copyAsMarkdown()
-        } catch (err) {
-          console.error('Copy page error:', err)
-        }
+        copyAsMarkdown().catch((err) => console.error('Copy page error:', err))
       })
 
-      container.querySelector('[data-action="view"]')?.addEventListener('click', () => {
+      addTrackedListener(viewItem, 'click', () => {
         menu.style.display = 'none'
         viewAsMarkdown()
       })
 
-      // Click outside to close
-      document.addEventListener('click', () => {
+      // Global listeners for closing menu - also tracked for cleanup
+      addTrackedListener(document as unknown as HTMLElement, 'click', () => {
         menu.style.display = 'none'
       })
 
-      // ESC to close
-      document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') {
+      addTrackedListener(document as unknown as HTMLElement, 'keydown', (e: Event) => {
+        if ((e as KeyboardEvent).key === 'Escape') {
           menu.style.display = 'none'
         }
       })
@@ -312,62 +364,50 @@ export const CopyPageWidget = defineComponent({
       return container
     }
 
-    const updatePagePath = () => {
-      // Prefer route.path over window.location.pathname for consistency
-      pagePath.value = route?.path || window.location.pathname
+    /**
+     * Schedule widget creation with a delay to wait for page content to render.
+     */
+    const scheduleCreateWidget = () => {
+      if (createWidgetTimer) clearTimeout(createWidgetTimer)
+      createWidgetTimer = setTimeout(() => {
+        createWidgetTimer = null
+        createWidget()
+      }, WIDGET_CREATION_DELAY_MS)
     }
 
-    // Use watchEffect for reliable route change detection
-    // This re-runs whenever route.path changes, providing better SPA navigation support
-    watchEffect(async () => {
-      // Safely access route.path - route might be undefined in some edge cases
-      const currentPath = route?.path
+    // Track route changes and update pagePath + language.
+    // Using watch with immediate:true for reliable SPA navigation detection,
+    // equivalent to watchEffect but without dependency-tracking side effects.
+    watch(
+      () => route?.path,
+      (newPath) => {
+        if (!newPath) return
+        pagePath.value = newPath
+        updateLang()
+      },
+      { immediate: true }
+    )
 
-      // Skip if path is empty (initial state)
-      if (!currentPath) return
-
-      // Update page path
-      pagePath.value = currentPath
-      updateLang()
-
-      // Remove existing widget first
-      widgetEl?.remove()
-      widgetEl = null
-
-      if (shouldShow.value && mounted.value) {
-        // Wait for DOM to update after navigation
-        await nextTick()
-        // Use longer delay for SPA navigation to ensure DOM is ready
-        setTimeout(() => createWidget(), 300)
-      }
-    })
-
-    // Also watch shouldShow to react to computed value changes
-    watch(shouldShow, async (show) => {
-      if (show && mounted.value) {
-        await nextTick()
-        setTimeout(() => createWidget(), 300)
-      } else {
-        widgetEl?.remove()
-        widgetEl = null
-      }
-    })
+    // Single watcher for widget lifecycle.
+    // Triggers when shouldShow or pagePath changes (covers route navigation,
+    // mount state change, and option changes).
+    watch(
+      [shouldShow, pagePath],
+      ([show]) => {
+        cleanupWidget()
+        if (show) {
+          nextTick(() => scheduleCreateWidget())
+        }
+      },
+      { flush: 'post' }
+    )
 
     onMounted(() => {
       mounted.value = true
-      updatePagePath()
-      updateLang()
-
-      if (shouldShow.value) {
-        // Wait for DOM to be ready
-        setTimeout(() => {
-          createWidget()
-        }, 200)
-      }
     })
 
     onUnmounted(() => {
-      widgetEl?.remove()
+      cleanupWidget()
     })
 
     return () => null // Render nothing, widget is inserted via DOM
