@@ -86,9 +86,9 @@ function compareVer(a, b) {
   if (va.major !== vb.major) return va.major - vb.major;
   if (va.minor !== vb.minor) return va.minor - vb.minor;
   if (va.patch !== vb.patch) return va.patch - vb.patch;
-  // No pre-release > has pre-release (1.0.0 > 1.0.0-rc.1)
-  if (!va.pre && vb.pre) return 1;
-  if (va.pre && !vb.pre) return -1;
+  // Has pre-release > no pre-release (1.0.0-rc.1 > 1.0.0)
+  if (!va.pre && vb.pre) return -1;
+  if (va.pre && !vb.pre) return 1;
   if (va.pre && vb.pre) return va.pre.localeCompare(vb.pre);
   return 0;
 }
