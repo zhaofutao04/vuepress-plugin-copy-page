@@ -399,7 +399,7 @@ interface CopyPageOptions {
 
 ## Changelog | 更新日志
 
-### v1.3.0
+### v1.2.3
 - **BREAKING**: Remove `position` option | 移除 `position` 配置选项
 - **BREAKING**: Remove `styleMode` option, use rich style as default | 移除 `styleMode` 选项，使用 rich 样式作为默认样式
 - Fix memory leak: global event listeners now properly cleaned up on route change | 修复内存泄漏：路由切换时正确清理全局事件监听器

@@ -36,8 +36,8 @@ Publishing is automated via GitHub Actions when a version tag (v*.*.*) is pushed
 
 ```bash
 # Create and push a version tag to trigger publishing
-git tag v1.3.0
-git push origin v1.3.0
+git tag v1.2.3
+git push origin v1.2.3
 ```
 
 The workflow requires `NPM_TOKEN` secret to be configured in GitHub repository settings. The token must have automation/2FA bypass permissions.
@@ -54,7 +54,7 @@ For RC/alpha/beta versions:
 ```bash
 # Update package.json to "version": "1.3.0-rc.1"
 git commit -am "chore: bump version to 1.3.0-rc.1"
-git tag v1.3.0-rc.1
+git tag v1.2.3-rc.1
 git push origin main --tags
 ```
 
@@ -152,7 +152,7 @@ When `urlPrefix` is not configured, the default `https://vuepress-plugin-copy-pa
 ### SPA Navigation
 **Problem:** Copy page button doesn't appear when navigating via SPA navigation.
 
-**Solution (v1.3.0):** Separate route tracking from widget lifecycle:
+**Solution (v1.2.3):** Separate route tracking from widget lifecycle:
 ```typescript
 // Track route changes
 watch(() => route?.path, (newPath) => {
